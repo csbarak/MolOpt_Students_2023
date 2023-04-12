@@ -44,6 +44,7 @@
     "@mui/x-data-grid": "^5.17.26",
     "@popperjs/core": "^2.11.2",
     "axios": "^1.2.1",
+    "bootstrap": "^5.2.3",
     "clsx": "^1.1.1",
     "material-ui-player": "^1.0.10",
     "mdi-material-ui": "^7.6.0",
@@ -59,7 +60,8 @@
     "react-notifications": "^1.7.4",
     "react-perfect-scrollbar": "^1.5.8",
     "react-popper": "^2.2.5",
-    "react-select-country-list": "^2.2.3"
+    "react-select-country-list": "^2.2.3",
+    "recharts": "^2.5.0"
   },
   "devDependencies": {
     "next-transpile-modules": "^9.0.0",
