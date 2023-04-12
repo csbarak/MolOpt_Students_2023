@@ -1,9 +1,8 @@
 import * as React from 'react'
-import { useState } from 'react'
-import { Button, TextField, Typography } from '@mui/material'
+import { useState, useEffect } from 'react'
+import { Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
-import FAQCard from 'src/components/faq-card'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import {
@@ -23,8 +22,7 @@ import {
 } from 'recharts'
 
 const Statistics = () => {
-  const [isAnswer, setIsAnswer] = useState([false, false, false, false])
-  const [answers, setAnswers] = useState({
+  const [countersData, setCountersData] = useState({
     visitorsCount: 10,
     registeredCount: 5,
     AdminsCount: 2,
@@ -80,82 +78,92 @@ const Statistics = () => {
         <div className='table'>
           <div className='row'>
             <div className='col-sm'>
-              {/* Bar Graph */}
-              <h4 className='text-decoration-underline fw-lighter'>New Users In MolOpt</h4>
-              <ResponsiveContainer width='95%' height={400}>
-                <BarChart data={dataBar} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='name' />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey='value' fill='#8884d8' />
-                </BarChart>
-              </ResponsiveContainer>
-
-              {/* Line Graph */}
-              <h4 className='text-decoration-underline fw-lighter'>Success/Failure Runs Of Algorithms</h4>
-              <ResponsiveContainer width='95%' height={400}>
-                <LineChart data={dataLine} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                  <XAxis dataKey='name' />
-                  <YAxis />
-                  <CartesianGrid stroke='#eee' strokeDasharray='5 5' />
-                  <Tooltip />
-                  <Legend />
-                  <Line type='monotone' dataKey='Fail' stroke='#8884d8' />
-                  <Line type='monotone' dataKey='Skipped' stroke='#FFD700' />
-                  <Line type='monotone' dataKey='Pass' stroke='#82ca9d' />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className='row-sm'>
+                {/* Bar Graph */}
+                <h4 className='text-decoration-underline fw-lighter'>New Users In MolOpt</h4>
+                <ResponsiveContainer width='95%' height={400}>
+                  <BarChart data={dataBar} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray='3 3' />
+                    <XAxis dataKey='name' />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey='value' fill='#8884d8' />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className='row-sm'>
+                {/* Line Graph */}
+                <h4 className='text-decoration-underline fw-lighter'>Success/Failure Runs Of Algorithms</h4>
+                <ResponsiveContainer width='95%' height={400}>
+                  <LineChart data={dataLine} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                    <XAxis dataKey='name' />
+                    <YAxis />
+                    <CartesianGrid stroke='#eee' strokeDasharray='5 5' />
+                    <Tooltip />
+                    <Legend />
+                    <Line type='monotone' dataKey='Fail' stroke='#8884d8' />
+                    <Line type='monotone' dataKey='Skipped' stroke='#FFD700' />
+                    <Line type='monotone' dataKey='Pass' stroke='#82ca9d' />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
             <div className='col-sm'>
-              {/* Users Info */}
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                    visitors visited MolOpt : {answers.visitorsCount}
-                  </Typography>
+              <div className='row-sm'>
+                {/* Users Info */}
+                <h4 className='text-decoration-underline fw-lighter'>Important MolOpt's Data</h4>
+                <Grid container spacing={5}>
+                  <Grid item xs={20}>
+                    <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                      Number of visitors visited MolOpt : {countersData.visitorsCount}
+                    </Typography>
+                  </Grid>
+                  <Divider />
+                  <Grid item xs={20}>
+                    <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                      Number of registered users in MolOpt : {countersData.registeredCount}
+                    </Typography>
+                  </Grid>
+                  <Divider />
+                  <Grid item xs={20}>
+                    <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                      Number of admin users in MolOpt : {countersData.AdminsCount}
+                    </Typography>
+                  </Grid>
+                  <Divider />
+                  <Grid item xs={20}>
+                    <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                      Number of algorithm runs in MolOpt : {countersData.AlgosRunsCount}
+                    </Typography>
+                  </Grid>
                 </Grid>
-                <Divider />
-                <Grid item xs={12}>
-                  <Typography variant='body2'>Registers users in MolOpt : {answers.registeredCount}</Typography>
-                </Grid>
-                <Divider />
-                <Grid item xs={12}>
-                  <Typography variant='body2'>Admin users in MolOpt : {answers.AdminsCount}</Typography>
-                </Grid>
-                <Divider />
-                <Grid item xs={12}>
-                  <Typography variant='body2'>Run of Algorithm in MolOpt : {answers.AlgosRunsCount}</Typography>
-                </Grid>
-              </Grid>
-
-              {/* Google Analytics */}
-            </div>
-          </div>
-          <div className='row'>
-            <div className='col-sm'>
-              {/* Pie Graph */}
-              <h4 className='text-decoration-underline fw-lighter'>Split Of Types Of Algorithm Runs</h4>
-              <ResponsiveContainer width='95%' height={350}>
-                <PieChart margin={{ top: 0, right: 5, left: 0, bottom: 5 }}>
-                  <Pie
-                    dataKey='value'
-                    isAnimationActive={false}
-                    data={dataPie}
-                    cx={200}
-                    cy={150}
-                    outerRadius={80}
-                    label
-                  >
-                    {dataPie.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              </div>
+              <div className='row-sm'>
+                {/* Pie Graph */}
+                <div style={{ marginTop: '135px' }}>
+                  <h4 className='text-decoration-underline fw-lighter'>Split Of Types Of Algorithm Runs</h4>
+                  <ResponsiveContainer width='95%' height={350}>
+                    <PieChart margin={{ top: 0, right: 5, left: 0, bottom: 5 }}>
+                      <Pie
+                        dataKey='value'
+                        isAnimationActive={false}
+                        data={dataPie}
+                        cx={200}
+                        cy={150}
+                        outerRadius={80}
+                        label
+                      >
+                        {dataPie.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
         </div>
