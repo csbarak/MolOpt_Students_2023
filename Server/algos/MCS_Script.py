@@ -37,7 +37,7 @@ def make_it_run(ref_file, lig_db):
     reference = Chem.MolFromMolFile(ref_file, removeHs=True)
     ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
     w = Chem.SDWriter("aligned.sdf")  # output ligands with constrained atoms
-    # wnt = Chem.SDWriter("output_nontethered.sdf")  # output of ligands without constraints (no MCS with reference ligand)
+    #wnt = Chem.SDWriter("output_nontethered.sdf")  # output of ligands without constraints (no MCS with reference ligand)
     for mol in ligands:
         if mol == None:
             continue

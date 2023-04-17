@@ -64,6 +64,7 @@ def make_it_run(filename):
 
     fs = FileSystemStorage()
     os.chdir(fs.location)
+
     def Mol2MolSupplier_1(file=None, sanitize=False):
         mols = []
         with open(file, 'r') as f:
