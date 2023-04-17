@@ -1,7 +1,6 @@
 import os
 import zipfile
 from threading import Thread
-
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMessage
 from rest_framework import filters, status, viewsets
@@ -13,11 +12,14 @@ from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth import logout
 from .models import UserProfile
-
-
-# Create your views here.
-from algos import MCS_Script, RDKit_Features_Script, Mordred_Features_Script, Decision_Tree_Improved_1, \
-    Decision_Tree_Improved_2, Decision_Tree_Prediction_Script
+from algos.Tree_Expert import Decision_Tree_Improved_1,Decision_Tree_Improved_2,Decision_Tree_Prediction_Script
+from algos.Tree_Manual import DecisionTreeRegressor_Manual,DecisionTreeRegressor_Manual_Prediction
+from algos.Lasso_Expert import Lasso_Regression_N1,Lasso_Regression_N2,Lasso_Regression_Prediction_Script
+from algos.Lasso_Manual import Lasso_Regression_Manual,Lasso_Regression_Manual_Prediction
+from algos.XG_Expert import ExpertMode_One,ExpertMode_Two,ExpertMode_Prediction_Script
+from algos.XG_Manual import Model_Training_Script,Prediction_Script
+from algos import MCS_Script,Mordred_Features_Script,RDKit_Features_Script
+from models import UserAlgoritmRun
 from api import models
 from api import permissions
 from api import serializers
@@ -156,110 +158,126 @@ class UserRunsViewSet(viewsets.ModelViewSet):
 
 
 fs = FileSystemStorage()
-
-
-def clear_media():
+def Clear_media():
     files = fs.listdir(fs.location)
     for file in files[1]:
-        fs.delete(os.path.join(fs.location, file))
-
+        fs.delete(os.path.join(fs.location,file))
 
 class UserRunAlignmentApiView(APIView):
     def post(self, request):
-        def runMCS():
-            print("MCS")
+        def runMCS(rId):
             MCS_Script.make_it_run('ref', 'db')
             email = EmailMessage('result', 'result', 'noreplymolopt@gmail.com', ['amit.peled14@gmail.com'])
             email.attach_file(os.path.join(fs.location, 'aligned.sdf'))
             email.send()
-            clear_media()
-
+            Clear_media()
+            run = UserAlgoritmRun.objects.get(id=rId)
+            run.status='finished'
+            run.save()
         try:
+            my_run=UserAlgoritmRun()
+            my_run.user_email=request.data['email']
+            my_run.status='running'
+            my_run.algorithm_name='Alignment'
+            my_run.save()
             fs.save('ref', request.data['ref'])
             fs.save('db', request.data['db'])
-            # save run
-            thread = Thread(target=runMCS)
+            thread = Thread(target=runMCS(my_run.id))
             thread.start()
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
+            my_run.status='failed'
+            my_run.save()
             print(e)
-            clear_media()
-            # save failed run
+            Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
+        
 class UserRunMordredApiView(APIView):
-    def post(self, request):
-        def runMordred():
-            # save run
+    def post(self,request):
+        my_run=UserAlgoritmRun()
+        my_run.user_email=request.data['email']
+        my_run.status='running'
+        my_run.algorithm_name='Mordred'
+        my_run.save()
+        def runMordred(rId):
             Mordred_Features_Script.make_it_run('mol')
-            email = EmailMessage('result', 'result', 'noreplymolopt@gmail.com', ['amit.peled14@gmail.com'])
+            email=EmailMessage('result','result','noreplymolopt@gmail.com',['xxshahar@gmail.com'])
             with zipfile.ZipFile('result.zip', 'w') as myzip:
                 myzip.write('FeaturesExtracted_MORDRED.csv', compress_type=zipfile.ZIP_DEFLATED)
-            email.attach_file(os.path.join(fs.location, 'result.zip'))
+            email.attach_file(os.path.join(fs.location,'result.zip'))
             email.send()
-            clear_media()
-
+            Clear_media()
+            run = UserAlgoritmRun.objects.get(id=rId)
+            run.status='finished'
+            run.save()
         try:
-            fs.save('mol', request.data['mol'])
-            thread = Thread(target=runMordred)
+            fs.save('mol',request.data['mol'])
+            thread=Thread(target=runMordred(my_run.id))
             thread.start()
-            # update run
-            return Response(status=status.HTTP_200_OK)
+            return Response('good')    
         except Exception as e:
+            my_run.status='failed'
+            my_run.save()
             print(e)
-            # save failed run
-            clear_media()
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
+            Clear_media()
+            return Response('bad')
 
 class UserRunRDKitApiView(APIView):
-    def post(self, request):
-        def runRD():
-            # save run
+    def post(self,request):
+        my_run=UserAlgoritmRun()
+        my_run.user_email=request.data['email']
+        my_run.status='running'
+        my_run.algorithm_name='RDKIT'
+        my_run.save()
+        def runRD(rId):
             RDKit_Features_Script.make_it_run('mol')
-            email = EmailMessage('result', 'result', 'noreplymolopt@gmail.com', ['amit.peled14@gmail.com'])
+            email=EmailMessage('result','result','noreplymolopt@gmail.com',['xxshahar@gmail.com'])
             with zipfile.ZipFile('result.zip', 'w') as myzip:
                 myzip.write('FeaturesExtracted_RDKIT.csv', compress_type=zipfile.ZIP_DEFLATED)
-            email.attach_file(os.path.join(fs.location, 'result.zip'))
+            email.attach_file(os.path.join(fs.location,'result.zip'))
             email.send()
-            clear_media()
-
+            Clear_media()
+            run = UserAlgoritmRun.objects.get(id=rId)
+            run.status='finished'
+            run.save()
         try:
-            fs.save('mol', request.data['mol'])
-            thread = Thread(target=runRD)
+            fs.save('mol',request.data['mol'])
+            thread=Thread(target=runRD(my_run.id))
             thread.start()
-            # update run
-            return Response(status=status.HTTP_200_OK)
+            return Response('good')    
         except Exception as e:
+            my_run.status='failed'
+            my_run.save()
             print(e)
-            # save failed run
-            clear_media()
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            Clear_media()
+            return Response('bad')
 
-
+            
 class UserRunMLAlgorithmsApiView(APIView):
-    def post(self, request):
-        def RunDecision():
-            Decision_Tree_Improved_1.make_it_rain('csv')
-            Decision_Tree_Improved_2.make_it_rain('csv', 5)
-            Decision_Tree_Prediction_Script.make_it_rain('csv', 5)
-            email = EmailMessage('result', 'result', 'noreplymolopt@gmail.com', ['amit.peled14@gmail.com'])
-            with zipfile.ZipFile('result.zip', 'w') as myzip:
-                myzip.write('Predicted_Results.csv', compress_type=zipfile.ZIP_DEFLATED)
-            email.attach_file(os.path.join(fs.location, 'result.zip'))
-            email.send()
-            clear_media()
-            # save run
-
+    def post(self,request):
+        name=''
+        if request.data['xgboost'] is not None:
+            name+='xgboost '
+        if request.data['lasso'] is not None:
+            name+='lasso '
+        if request.data['tree'] is not None:
+            name+='tree'
+        my_run=UserAlgoritmRun()
+        my_run.user_email=request.data['email']
+        my_run.status='running'
+        my_run.algorithm_name=name
+        my_run.save()
+        def RunAlgos(rId):
+            ###TODO:Finish Run Algos###
+            Clear_media()
         try:
-            fs.save('csv', request.data['csv'])
-            thread = Thread(target=RunDecision)
+            fs.save('csv',request.data['csv'])
+            thread=Thread(target=RunAlgos(my_run.id))
             thread.start()
-            # update run
-            return Response(status=status.HTTP_200_OK)
+            return Response('good')    
         except Exception as e:
             print(e)
-            clear_media()
-            # save failed run
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            Clear_media()
+            my_run.status='failed'
+            my_run.save()
+            return Response('bad')

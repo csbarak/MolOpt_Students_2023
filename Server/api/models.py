@@ -1,4 +1,5 @@
 from django.db import models
+from djongo import models as djmodels
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
@@ -69,14 +70,14 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 class UserAlgoritmRun(models.Model):
     """User algoritm run document - allowed insure to not create feed to user that not exists"""
     # --> on_delete: if we want that runs history wii not be deleted when deleting user - DO_NOTHING | SET_NULL | PROTECT
-    user_id = models.ForeignKey(
+    id = djmodels.ObjectIdField(primary_key=True)
+    user_email = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
-    user_email = models.EmailField()
-    algorithm_id = models.CharField(max_length=3)
-    is_finished = models.BooleanField(default=False)
-    created_on = models.DateTimeField(auto_now_add=True)
+    algorithm_name = models.CharField(max_length=255)
+    status = models.CharField(max_length=255)
+    time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         """Return the model as a string"""
