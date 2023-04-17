@@ -35,6 +35,7 @@ def make_it_run(filename):
     table = pd.DataFrame()
     calc = Calculator(descriptors, ignore_3D=False)
     index = 0
+    MordredFeatures = []
     for mol in database:
         table.loc[index, 'Name'] = mol.GetProp('_Name')
         MordredFeatures = calc(mol)
