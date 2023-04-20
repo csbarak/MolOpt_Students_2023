@@ -37,10 +37,15 @@ const UserDropdown = () => {
     setAnchorEl(null)
   }
   const handleLogout = () => {
+    const config = {
+      // headers: {
+      //   Token: "Bearer b5dfc7f5bf346c5aedc96d0b4b06fce181f5ff7a"
+      // }
+    }
     api
-      .post('logout/')
+      .post('logout/', {},config)
       .then(res => {
-        if (res.status === 200) {
+        if (res) {
           router.push('/')
         }
       })

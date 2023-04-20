@@ -12,6 +12,7 @@ class UserProfileManager(BaseUserManager):
 
     def create_user(self, email, first_name, last_name, affiliation, position, password=None):
         """Create a new user"""
+        print(email)
         if not email:
             raise ValueError('User must have an email address')
 

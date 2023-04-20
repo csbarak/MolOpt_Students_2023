@@ -16,8 +16,9 @@ router.register('runs', views.UserRunsViewSet)
 
 urlpatterns = [
     ### post:
+    # path('users/',                      views.UserProfileViewSet),                           # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('get_user/',                   views.getUser.as_view()),                           # body of the api is all the new user birthdate, phone, country, languages, gender.
-    path('users/',                      views.getAllUsers.as_view()),                       # body of the api is all the new user birthdate, phone, country, languages, gender.
+    path('get_all_users/',              views.getAllUsers.as_view()),                       # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('check_permissions/',          views.CheckPermissions.as_view()),                  # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('create_admin/',               views.CreateSystemAdminApiView.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('remove_admin/',               views.RemoveSystemAdminApiView.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.

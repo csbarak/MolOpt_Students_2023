@@ -95,6 +95,7 @@ const LoginPage = () => {
       .post('login/', body)
       .then(res => {
         if (res.status === 200) {
+          console.log(res.data.token)
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()

@@ -38,10 +38,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     """handle creating and updating profiles"""
     serializer_class = serializers.UserProfileSerializer
     queryset = models.UserProfile.objects.all()
-    # authentication_classes = (TokenAuthentication,)
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (permissions.SeeOwnProfile,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('email', 'first_name', 'last_name')
+    # filter_backends = (filters.SearchFilter,)
+    # search_fields = ('email', 'first_name', 'last_name')
 
 
 class UserLoginApiView(ObtainAuthToken):
@@ -50,7 +50,7 @@ class UserLoginApiView(ObtainAuthToken):
 
 
 class UserLogoutApiView(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:

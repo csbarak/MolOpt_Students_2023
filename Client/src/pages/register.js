@@ -87,8 +87,14 @@ const RegisterPage = () => {
     return await api
       .post('users/', body)
       .then(res => {
-        if (res.status === 200) {
+        console.log(res)
+        if (res.status === 201) {
           return Notification('Registered successfully', 'success', () => {
+            router.push('/')
+          }).apply()
+        }
+        if (res.status === 400) {
+          return Notification('EMail already exists in the system', 'error', () => {
             router.push('/')
           }).apply()
         }
