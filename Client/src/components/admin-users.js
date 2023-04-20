@@ -19,12 +19,33 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import axios from 'axios'
+import api from './api'
+import Notification from './notification'
 
 const Row = props => {
   const { row } = props
   const [open, setOpen] = useState(false)
   const [select, setSelect] = useState(['Admin', 'User'])
   const [selected, setSelected] = useState('')
+
+  const handleChange = async event => {
+    return await api
+      .post('change-role/', { role: selected })
+      .then(res => {
+        if (res.status === 200) {
+          return Notification('Role changed successfully', 'success').apply()
+        }
+      })
+      .catch(err => console.log(err))
+  }
+
+  const handleDelete = async event => {
+    return await api.post('delete-user/', { id: row.id }).then(res => {
+      if (res.status === 200) {
+        return Notification('User deleted successfully', 'success').apply()
+      }
+    })
+  }
 
   return (
     <>
@@ -49,8 +70,11 @@ const Row = props => {
                 <TableHead>
                   <TableRow />
                 </TableHead>
+                <br />
                 <TableBody align='center' sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
-                  <Button variant='outlined'>Delete user</Button>
+                  <Button variant='outlined' onClick={handleDelete}>
+                    Delete user
+                  </Button>
                   <Select
                     variant='outlined'
                     label={`Train/Predict with top features`}
@@ -66,8 +90,11 @@ const Row = props => {
                       </MenuItem>
                     ))}
                   </Select>
-                  <Button variant='outlined'>Save Changes</Button>
+                  <Button variant='outlined' onClick={handleChange}>
+                    Save Changes
+                  </Button>
                 </TableBody>
+                <br />
               </Table>
             </Box>
           </Collapse>
@@ -85,6 +112,17 @@ const AdminUsers = () => {
   useEffect(async () => {
     return await axios.get('https://dummyjson.com/users').then(res => setUsers(res.data.users))
   }, [])
+
+  // useEffect(async () => {
+  //   return await api
+  //     .get('/users')
+  //     .then(res => {
+  //       if (res.status === 200) {
+  //         setUsers(res.data)
+  //       }
+  //     })
+  //     .catch(err => console.log(err))
+  // }, [])
 
   const handleChangePage = (event, newpage) => {
     setPage(newpage)

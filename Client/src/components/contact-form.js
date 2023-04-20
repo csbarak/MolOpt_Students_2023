@@ -1,34 +1,62 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 // ** MUI Imports
-import { Card, Grid, Button, TextField, CardHeader, CardContent, InputAdornment, Select ,MenuItem , FormControl , InputLabel} from '@mui/material'
+import {
+  Card,
+  Grid,
+  Button,
+  TextField,
+  CardHeader,
+  CardContent,
+  InputAdornment,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
+} from '@mui/material'
 
 // ** Icons Imports
 import MessageOutline from 'mdi-material-ui/MessageOutline'
+import api from './api'
+import Notification from './notification'
 
 const ContactForm = () => {
-  const [selection , setSelection] = useState('')
-  const [message , setMessage] = useState('')
-  const options = ['Report a bug' , 'Report a problem' , 'Suggestion']
+  const [selection, setSelection] = useState('')
+  const [message, setMessage] = useState('')
+  const options = ['Report a bug', 'Report a problem', 'Suggestion']
+
+  const handleOnClick = async () => {
+    return await api
+      .post('contact-admin/', { type: selection, email: message })
+      .then(res => {
+        if (res.status === 200) return Notification('Message send successfully', 'success').apply()
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
   return (
     <Card>
-      {console.log('select' , selection , 'message' , message)}
       <CardHeader title='Send Message' titleTypographyProps={{ variant: 'h6' }} />
       <CardContent>
         <form onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
-            <FormControl fullWidth>
-            <InputLabel id='select-contact'>{`Select an option`}</InputLabel>
-            <Select
-             defaultValue={selection}
-             id='select-contact'
-             labelId='select-contact'
-             value={selection}
-             onChange={e => setSelection(e.target.value)}
-            >
-              {options.map(option => <MenuItem defaultValue='' value={option} key={options.indexOf(option)}>{option}</MenuItem>)}
-            </Select>
-            </FormControl>
+              <FormControl fullWidth>
+                <InputLabel id='select-contact'>{`Select an option`}</InputLabel>
+                <Select
+                  defaultValue={selection}
+                  id='select-contact'
+                  labelId='select-contact'
+                  value={selection}
+                  onChange={e => setSelection(e.target.value)}
+                >
+                  {options.map(option => (
+                    <MenuItem defaultValue='' value={option} key={options.indexOf(option)}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -50,7 +78,14 @@ const ContactForm = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Button type='submit' variant='contained' size='large' sx={{ display: 'flex', justifyContent: 'center' }} disabled={message === '' || selection === ''}>
+              <Button
+                type='submit'
+                variant='contained'
+                size='large'
+                sx={{ display: 'flex', justifyContent: 'center' }}
+                disabled={message === '' || selection === ''}
+                onClick={handleOnClick}
+              >
                 Submit
               </Button>
             </Grid>

@@ -8,7 +8,6 @@ import Menu from 'mdi-material-ui/Menu'
 // ** Components
 import DarkMode from './dark-mode'
 import UserDropdown from './user-dropdown'
-import NotificationDropdown from './notification-dropdown'
 
 const AppBarContent = props => {
   // ** Props
@@ -32,7 +31,6 @@ const AppBarContent = props => {
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         <DarkMode settings={settings} saveSettings={saveSettings} />
-        {/* <NotificationDropdown /> */}
         <UserDropdown />
       </Box>
     </Box>

@@ -61,6 +61,7 @@ const FileUpload = () => {
     const formData = new FormData()
     formData.append('ref', selectedRefFile)
     formData.append('db', selectedLigandFile)
+    console.log('alignment', formData)
     return await api
       .post('run_alignment/', formData)
       .then(res => {

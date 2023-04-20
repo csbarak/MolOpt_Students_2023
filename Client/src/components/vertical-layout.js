@@ -15,7 +15,6 @@ import themeConfig from 'src/configs/themeConfig'
 // ** Components
 import AppBar from './app-bar'
 import Navigation from './vertical-nav-navigation'
-import ScrollToTop from 'src/components/scroll-to-top'
 
 // ** Styled Component
 import DatePickerWrapper from './date-picker'
@@ -93,11 +92,9 @@ const VerticalLayout = props => {
       {scrollToTop ? (
         scrollToTop(props)
       ) : (
-        <ScrollToTop className='mui-fixed'>
-          <Fab color='primary' size='small' aria-label='scroll back to top'>
-            <ArrowUp />
-          </Fab>
-        </ScrollToTop>
+        <Fab color='primary' size='small' aria-label='scroll back to top'>
+          <ArrowUp />
+        </Fab>
       )}
     </>
   )

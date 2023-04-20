@@ -2,7 +2,7 @@ import React from 'react'
 import Grid from '@mui/material/Grid'
 import TasksTable from 'src/components/tasks-table'
 
-const History = () => {
+const Tasks = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
@@ -12,4 +12,4 @@ const History = () => {
   )
 }
 
-export default History
+export default Tasks
