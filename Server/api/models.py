@@ -1,3 +1,4 @@
+import json
 from django.db import models
 # from djongo import models as djmodels
 from django.contrib.auth.models import AbstractBaseUser
@@ -57,6 +58,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         """Retrieve the full name of the user"""
         return self.first_name + ' ' + self.last_name
+    
 
     def get_short_name(self):
         """Retrieve the full name of the user"""
@@ -70,7 +72,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 class UserAlgoritmRun(models.Model):
     """User algoritm run document - allowed insure to not create feed to user that not exists"""
     # --> on_delete: if we want that runs history wii not be deleted when deleting user - DO_NOTHING | SET_NULL | PROTECT
-    # id = djmodels.ObjectIdField()
+    id = models.AutoField(primary_key=True)
     user_email = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
