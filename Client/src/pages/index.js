@@ -215,7 +215,7 @@ const LoginPage = () => {
             <Box
               sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
             >
-              <FormControlLabel control={<Checkbox />} label='Remember Me' />
+              {/* <FormControlLabel control={<Checkbox />} label='Remember Me' /> */}
               <Button size='small'>
                 <LinkStyledForgot onClick={e => setShowForgot(true)}>Forgot Password?</LinkStyledForgot>
               </Button>
