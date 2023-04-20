@@ -94,12 +94,13 @@ class getUser(APIView):
 
 
 class CheckPermissions(APIView):
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
             pk = request.data['user_id']
             user = User.objects.get(pk=pk)
-            return Response(status=status.HTTP_200_OK, data={"have_permission": user.is_staff})
+            return Response(status=status.HTTP_200_OK, data={"is_admin": user.is_staff})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[CheckPermissions] ' + str(e)})
 
@@ -109,7 +110,7 @@ class CreateSystemAdminApiView(APIView):
 
     def post(self, request):
         try:
-            if IsAdminUser and request.user.is_staff:
+            if request.user.is_staff:
                 pk = request.data['user_id']
                 if pk is not None:
                     user = User.objects.get(pk=pk)

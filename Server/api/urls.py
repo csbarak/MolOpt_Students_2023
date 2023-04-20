@@ -16,12 +16,12 @@ router.register('runs', views.UserRunsViewSet)
 
 urlpatterns = [
     ### post:
-    path('get_user/',                   views.getUser.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
-    path('users/',                      views.getAllUsers.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
-    path('check_permissions/',          views.CheckPermissions.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
+    path('get_user/',                   views.getUser.as_view()),                           # body of the api is all the new user birthdate, phone, country, languages, gender.
+    path('users/',                      views.getAllUsers.as_view()),                       # body of the api is all the new user birthdate, phone, country, languages, gender.
+    path('check_permissions/',          views.CheckPermissions.as_view()),                  # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('create_admin/',               views.CreateSystemAdminApiView.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('remove_admin/',               views.RemoveSystemAdminApiView.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
-    path('delete_user/',                views.DeleteUserFromSystem.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
+    path('delete_user/',                views.DeleteUserFromSystem.as_view()),              # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('run_alignment/',              views.UserRunAlignmentApiView.as_view()),           # body of the api is 2 files
     path('run_Mordred/',                views.UserRunMordredApiView.as_view()),             # body of the api is 1 file and list of packages to run
     path('run_RDKit/',                  views.UserRunRDKitApiView.as_view()),               # body of the api is 1 file and list of packages to run
