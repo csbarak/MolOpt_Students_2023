@@ -4,11 +4,18 @@ import React from 'react'
 // ** MUI Imports
 import { Tab, Card, Typography, CardContent } from '@mui/material'
 import { TabList, TabPanel, TabContext } from '@mui/lab'
+import Grid from '@mui/material/Grid'
+import Divider from '@mui/material/Divider'
+
+import FAQCard from 'src/components/faq-card'
 import ImageCarusel from './image-carusel'
 
 const AlgorithmsCard = () => {
   // ** State
   const [value, setValue] = useState('1')
+  const [alignmentCards, setAlignmentCards] = useState([false, false, false, false])
+  const [featureExtractionCards, setFeatureExtractionCards] = useState([false, false, false, false])
+  const [machineLearningCards, setMachineLearningCards] = useState([false, false, false, false])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -52,6 +59,54 @@ const AlgorithmsCard = () => {
               >
                 Link to Tethered Minimization
               </a>
+
+              <br /><br /><br />{' '}
+              <Grid container spacing={6}>
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='How to run this algorithm in MolOpt?'
+                    answer='Go to the Dashboard page, chose the alignment tab, then upload the relevant files and click on "Submit".'
+                    isAnswer={alignmentCards}
+                    setIsAnswer={setAlignmentCards}
+                    index={0}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='Which files are needed to run this algorithm?'
+                    answer='2 .sdf files, one for the reference molecule and one for the required molecules.'
+                    isAnswer={alignmentCards}
+                    setIsAnswer={setAlignmentCards}
+                    index={1}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the format of each .sdf file?'
+                    answer='First 2 rows will contain the title and name of the file.
+                            The third line will be blank to separate the title from the content of the file.
+                            The fourth line will contain the headers – separated by tab (\t).
+                            From the fifth line and until the end of the file, each line will contain the values for each header mentioned in line 4 – separated by tab (\t) as well.
+                            For ending the file/table in the file, just write these two lines: M	END => $$$$'
+                    isAnswer={alignmentCards}
+                    setIsAnswer={setAlignmentCards}
+                    index={2}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the output of the algorithm?'
+                    answer='The output of this run will be a “.mol2” file – the aligned molecule file.'
+                    isAnswer={alignmentCards}
+                    setIsAnswer={setAlignmentCards}
+                    index={3}
+                  />
+                </Grid>
+                <Divider />
+              </Grid>
             </Typography>
           </TabPanel>
           <TabPanel value='3' sx={{ p: 0 }}>
@@ -76,6 +131,49 @@ const AlgorithmsCard = () => {
             </Typography>
             <br />
             <ImageCarusel props={['/images/2.png']} />
+            <br /><br /><br />{' '}
+            <Grid container spacing={6}>
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='How to run this algorithm in MolOpt?'
+                    answer='Go to the Dashboard page, chose the feature extraction tab and the required running type (RDKIT/Mordred), then upload the relevant file and click on "Submit".'
+                    isAnswer={featureExtractionCards}
+                    setIsAnswer={setFeatureExtractionCards}
+                    index={0}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='Which files are needed to run this algorithm?'
+                    answer='Only one file is needed. The file is .mol2 file (most recommended to be aligned).'
+                    isAnswer={featureExtractionCards}
+                    setIsAnswer={setFeatureExtractionCards}
+                    index={1}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the format of each .mol2 file?'
+                    answer='The .mol2 file is divided into sections (<TRIPOS>), each of them describe the molecule'
+                    isAnswer={featureExtractionCards}
+                    setIsAnswer={setFeatureExtractionCards}
+                    index={2}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the output of the algorithm?'
+                    answer='The output of this run will be an excel file – which include all the required features of the molecule given by the user.'
+                    isAnswer={featureExtractionCards}
+                    setIsAnswer={setFeatureExtractionCards}
+                    index={3}
+                  />
+                </Grid>
+                <Divider />
+              </Grid>
           </TabPanel>
           <TabPanel value='4' sx={{ p: 0 }}>
             <Typography variant='body1'>
@@ -95,7 +193,50 @@ const AlgorithmsCard = () => {
             </Typography>
             <br />
             <ImageCarusel props={['/images/3.png']} />
-
+            <br /><br /><br />{' '}
+            <Grid container spacing={6}>
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='How to run this algorithm in MolOpt?'
+                    answer='Go to the Dashboard page, chose the Machine Learning tab and the required running type (chose at least one of XGBoost, Lasso regression, Decision tree regressor), then upload the relevant file and click on "Submit".'
+                    isAnswer={machineLearningCards}
+                    setIsAnswer={setMachineLearningCards}
+                    index={0}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='Which files are needed to run this algorithm?'
+                    answer='Only one file is needed. The file is the excel file that include the characters of the molecule. Note that there is also option to add param values for this algorithm run (This will run the algorithm on manual mode with the input values, otherwise it will run on auto mode with default values)'
+                    isAnswer={machineLearningCards}
+                    setIsAnswer={setMachineLearningCards}
+                    index={1}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the format of the Excel file?'
+                    answer='First line should contain the headers (each cell will have the name of different character of the molecule).
+                    The rest of the lines will contains the values for each character.'
+                    isAnswer={machineLearningCards}
+                    setIsAnswer={setMachineLearningCards}
+                    index={2}
+                  />
+                </Grid>
+                <Divider />
+                <Grid item xs={12}>
+                  <FAQCard
+                    question='What should be the output of the algorithm?'
+                    answer='The output of this run will be an excel file – which include the docking level details of the molecule.'
+                    isAnswer={machineLearningCards}
+                    setIsAnswer={setMachineLearningCards}
+                    index={3}
+                  />
+                </Grid>
+                <Divider />
+              </Grid>
             <Typography variant='body1'></Typography>
           </TabPanel>
         </CardContent>
