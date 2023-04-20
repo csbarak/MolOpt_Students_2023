@@ -7,10 +7,12 @@ export const clearFields = (
   setLassoValues,
   setXgboostSelection,
   setLassoSelection,
-  setDtrSelection
+  setDtrSelection,
+  setNumberOfFeaturesLasso
 ) => {
   if (!isXGBoostAlgo) {
     setXGBoostValues({
+      numberOfFeatures: '',
       learningRate: '',
       lambda: '',
       dropRate: '',
@@ -25,6 +27,7 @@ export const clearFields = (
   }
   if (!isDTR) {
     setDTRValues({
+      numberOfFeatures: '',
       maxDepth: '',
       minSample: '',
       minSampleLeaf: '',
@@ -70,7 +73,8 @@ export const clearAll = (
   setIsXGBoostAlgo,
   setIsDTR,
   setIsLasso,
-  setBindingSelection
+  setBindingSelection,
+  setNumberOfFeaturesLasso
 ) => {
   setAuto(false)
   setIsRDKit(false)
@@ -88,6 +92,7 @@ export const clearAll = (
     setLassoValues,
     setXgboostSelection,
     setLassoSelection,
-    setDtrSelection
+    setDtrSelection,
+    setNumberOfFeaturesLasso
   )
 }
