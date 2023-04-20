@@ -124,47 +124,42 @@ const AutoProcess = ({
   const validateFields = () => {
     if (isXGBoostAlgo) {
       if (
-        !(
+        xgboostSelection.length === 0 ||
+        (!(
           xgboostValue.learningRate === '' &&
           xgboostValue.lambda === '' &&
           xgboostValue.dropRate === '' &&
           xgboostValue.maxDepth === '' &&
-          xgboostValue.alpha === '' &&
-          xgboostSelection.length === 0
+          xgboostValue.alpha === ''
         ) &&
-        (!xgboostValue.learningRate.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !xgboostValue.lambda.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !xgboostValue.dropRate.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !xgboostValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !xgboostValue.alpha.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          xgboostSelection.length === 0)
+          (!xgboostValue.learningRate.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !xgboostValue.lambda.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !xgboostValue.dropRate.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !xgboostValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !xgboostValue.alpha.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
       ) {
         return false
       }
     }
     if (isDTR) {
       if (
-        !(
+        dtrSelection.length === 0 ||
+        (!(
           dtrValue.maxDepth === '' &&
           dtrValue.minSample === '' &&
           dtrValue.minSampleLeaf === '' &&
-          dtrValue.minWeightFraction === '' &&
-          dtrSelection.length === 0
+          dtrValue.minWeightFraction === ''
         ) &&
-        (!dtrValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !dtrValue.minSample.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !dtrValue.minSampleLeaf.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          !dtrValue.minWeightFraction.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
-          dtrSelection.length === 0)
+          (!dtrValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !dtrValue.minSample.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !dtrValue.minSampleLeaf.match(/^(0(\.\d+)?|1(\.0+)?)$/) ||
+            !dtrValue.minWeightFraction.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
       ) {
         return false
       }
     }
     if (isLasso) {
-      if (
-        (lassoSelection.length !== 0 && lassoValue === null) ||
-        (lassoSelection.length === 0 && lassoValue !== null)
-      ) {
+      if (lassoSelection.length === 0 || (lassoSelection.length === 0 && lassoValue === null)) {
         return false
       }
     }

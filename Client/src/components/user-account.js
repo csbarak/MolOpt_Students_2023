@@ -11,6 +11,8 @@ import InputLabel from '@mui/material/InputLabel'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
+import { useEffect } from 'react'
+import api from './api'
 
 const TabAccount = () => {
   const [info, setInfo] = useState({
@@ -20,6 +22,24 @@ const TabAccount = () => {
     affiliation: '',
     position: ''
   })
+
+  useEffect(async () => {
+    return await api
+      .get('user/')
+      .then(res => {
+        setInfo({
+          firstName: res.data.first_name,
+          lastName: res.data.last_name,
+          email: res.data.email,
+          affiliation: res.data.affiliation,
+          position: res.data.position
+        })
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }, [])
+
   return (
     <CardContent>
       <form>
@@ -29,6 +49,7 @@ const TabAccount = () => {
               fullWidth
               label='First Name'
               placeholder='John'
+              value={info.firstName}
               onChange={e => setInfo(prev => ({ ...prev, firstName: e.target.value }))}
             />
           </Grid>
@@ -37,16 +58,18 @@ const TabAccount = () => {
               fullWidth
               label='Last Name'
               placeholder='Doe'
+              value={info.lastName}
               onChange={e => setInfo(prev => ({ ...prev, lastName: e.target.value }))}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              disabled={true}
               type='email'
               label='Email'
               placeholder='johnDoe@example.com'
-              defaultValue='johnDoe@example.com'
+              value={info.email}
               onChange={e => setInfo(prev => ({ ...prev, email: e.target.value }))}
             />
           </Grid>
@@ -64,6 +87,7 @@ const TabAccount = () => {
               fullWidth
               label='Affiliation'
               placeholder='Ben Gurion University'
+              value={info.affiliation}
               onChange={e => setInfo(prev => ({ ...prev, affiliation: e.target.value }))}
             />
           </Grid>
@@ -73,6 +97,7 @@ const TabAccount = () => {
               fullWidth
               label='Position'
               placeholder='Professor'
+              value={info.position}
               onChange={e => setInfo(prev => ({ ...prev, position: e.target.value }))}
             />
           </Grid>

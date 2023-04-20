@@ -12,7 +12,7 @@ const ForgotPassword = ({ value, setValue }) => {
 
   const handleForgotPassword = async () => {
     return await api
-      .post('/users/reset', email)
+      .post('reset_password/', email)
       .then(res => {
         if (res.status === 200) {
           return Notification('Password reset successfully , please check your email.', 'success').apply()

@@ -6,6 +6,7 @@ import FAQCard from 'src/components/faq-card'
 
 const FAQ = () => {
   const [isAnswer, setIsAnswer] = useState([false, false, false, false, false])
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>

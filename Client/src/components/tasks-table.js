@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 // ** MUI Imports
 import {
   Box,
@@ -101,6 +101,11 @@ const statusObj = {
 const TasksTable = () => {
   const [page, setPage] = useState(0)
   const [rowPage, setRowPage] = useState(5)
+  const [tasks, setTasks] = useState([])
+
+  // useEffect(async () => {
+  //   return await axios.get('tasks/').then(res => setTasks(res.data))
+  // }, [])
 
   const handleChangePage = (e, newpage) => {
     setPage(newpage)

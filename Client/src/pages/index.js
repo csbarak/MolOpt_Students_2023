@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 // ** Next Imports
 import Link from 'next/link'
@@ -10,7 +10,6 @@ import api from '../components/api'
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
@@ -25,8 +24,6 @@ import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Icons Imports
-import Google from 'mdi-material-ui/Google'
-import Github from 'mdi-material-ui/Github'
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 
@@ -97,15 +94,13 @@ const LoginPage = () => {
     return await api
       .post('login/', body)
       .then(res => {
-        console.log(res.data)
-
-        return Notification('Logged in successfully', 'success', () => {
-          router.push('/dashboard')
-        }).apply()
+        if (res.status === 200) {
+          return Notification('Logged in successfully', 'success', () => {
+            router.push('/dashboard')
+          }).apply()
+        }
       })
-      .catch(err => {
-        console.error(err)
-      })
+      .catch(err => Notification(err, 'error').apply())
   }
 
   return (
@@ -238,21 +233,6 @@ const LoginPage = () => {
                 </Link>
               </Typography>
             </Box>
-            {/* <Divider sx={{ my: 5 }}>or</Divider>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Github
-                    sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
-                  />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Google sx={{ color: '#db4437' }} />
-                </IconButton>
-              </Link>
-            </Box> */}
           </form>
           <ForgotPassword value={showForgot} setValue={setShowForgot} />
         </CardContent>

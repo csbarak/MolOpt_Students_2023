@@ -28,6 +28,7 @@ const Statistics = () => {
     AdminsCount: 2,
     AlgosRunsCount: 100
   })
+
   const colors = ['#4f86f7', '#6ed34c', '#FFD700', '#b66dff', '#ff5353', '#ff9d00', '#7a7a7a', '#8dd7cf']
 
   //fake data for runs - TODO: Change to real runs data!

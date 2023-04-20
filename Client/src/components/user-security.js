@@ -17,6 +17,8 @@ import {
 // ** Icons Imports
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
+import api from './api'
+import Notification from './notification'
 
 const TabSecurity = () => {
   // ** States
@@ -53,6 +55,12 @@ const TabSecurity = () => {
 
   const handleMouseDownNewPassword = event => {
     event.preventDefault()
+  }
+
+  const handleOnClick = async () => {
+    return await api.post('change-password/', { password: values.newPassword }).then(res => {
+      if (res.status === 200) return Notification('Password changed successfully', 'success').apply()
+    })
   }
 
   return (
@@ -109,7 +117,7 @@ const TabSecurity = () => {
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
+            <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleOnClick}>
               Save Changes
             </Button>
           </Grid>

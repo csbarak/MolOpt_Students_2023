@@ -19,6 +19,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import axios from 'axios'
+import api from './api'
 
 const Row = props => {
   const { row } = props
@@ -85,6 +86,17 @@ const AdminUsers = () => {
   useEffect(async () => {
     return await axios.get('https://dummyjson.com/users').then(res => setUsers(res.data.users))
   }, [])
+
+  // useEffect(async () => {
+  //   return await api
+  //     .get('/users')
+  //     .then(res => {
+  //       if (res.status === 200) {
+  //         setUsers(res.data)
+  //       }
+  //     })
+  //     .catch(err => console.log(err))
+  // }, [])
 
   const handleChangePage = (event, newpage) => {
     setPage(newpage)

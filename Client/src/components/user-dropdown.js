@@ -12,22 +12,12 @@ import Badge from '@mui/material/Badge'
 import Avatar from '@mui/material/Avatar'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
-import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Icons Imports
-import EmailOutline from 'mdi-material-ui/EmailOutline'
 import LogoutVariant from 'mdi-material-ui/LogoutVariant'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
-
-// ** Styled Components
-const BadgeContentSpan = styled('span')(({ theme }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.success.main,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
-}))
+import api from './api'
 
 const UserDropdown = () => {
   // ** States
@@ -45,6 +35,18 @@ const UserDropdown = () => {
       router.push(url)
     }
     setAnchorEl(null)
+  }
+  const handleLogout = () => {
+    api
+      .post('logout/')
+      .then(res => {
+        if (res.status === 200) {
+          router.push('/')
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 
   const styles = {
@@ -99,16 +101,8 @@ const UserDropdown = () => {
             Profile
           </Box>
         </MenuItem>
-        {/* <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <EmailOutline sx={{ marginRight: 2 }} />
-            Inbox
-          </Box>
-        </MenuItem> */}
-
         <Divider />
-        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/')}>
+        <MenuItem sx={{ py: 2 }} onClick={handleLogout}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
         </MenuItem>

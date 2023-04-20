@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 // ** Axios Imports
 import api from '../components/api'
-//import axios from 'axios'
 
 // ** MUI Components
 import Box from '@mui/material/Box'
@@ -69,7 +68,6 @@ const RegisterPage = () => {
     confirmPassword: 'Confirm password does not match password',
     firstName: 'First name must include alphabetic characters only',
     lastName: 'Last name must include alphabetic characters only'
-    // TODO: Need to add filiation and position validations
   }
   const handlePrivacy = e => {
     e.preventDefault()
@@ -83,19 +81,19 @@ const RegisterPage = () => {
       password: values.password,
       first_name: values.firstName,
       last_name: values.lastName,
-      affiliation: "None",
-      position: "None",
+      affiliation: 'None',
+      position: 'None'
     }
     return await api
       .post('users/', body)
       .then(res => {
-        console.log(res.data);
-        
-        return Notification('Registered successfully', 'success', () => {
-          router.push('/')
-        }).apply()
+        if (res.status === 200) {
+          return Notification('Registered successfully', 'success', () => {
+            router.push('/')
+          }).apply()
+        }
       })
-      .catch(err => console.error(err))
+      .catch(err => Notification(err, 'error').apply())
   }
 
   // ** Hook
@@ -269,7 +267,7 @@ const RegisterPage = () => {
               variant='contained'
               sx={{ marginBottom: 7 }}
               disabled={!acceptTerms || !validateFields()}
-              onClick={e => onClickRegister(e) /* Need to check valid code and navigate to Login */}
+              onClick={e => onClickRegister(e)}
             >
               Sign up
             </Button>
