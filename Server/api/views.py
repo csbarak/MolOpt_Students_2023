@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth import logout
-from .models import UserProfile
+from .models import UserProfile, UserAlgoritmRun
 from algos.Tree_Expert import Decision_Tree_Improved_1,Decision_Tree_Improved_2,Decision_Tree_Prediction_Script
 from algos.Tree_Manual import DecisionTreeRegressor_Manual,DecisionTreeRegressor_Manual_Prediction
 from algos.Lasso_Expert import Lasso_Regression_N1,Lasso_Regression_N2,Lasso_Regression_Prediction_Script
@@ -19,7 +19,6 @@ from algos.Lasso_Manual import Lasso_Regression_Manual,Lasso_Regression_Manual_P
 from algos.XG_Expert import ExpertMode_One,ExpertMode_Two,ExpertMode_Prediction_Script
 from algos.XG_Manual import Model_Training_Script,Prediction_Script
 from algos import MCS_Script,Mordred_Features_Script,RDKit_Features_Script
-from models import UserAlgoritmRun
 from api import models
 from api import permissions
 from api import serializers
