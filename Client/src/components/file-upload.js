@@ -65,11 +65,14 @@ const FileUpload = () => {
     return await api
       .post('run_alignment/', formData)
       .then(res => {
-        if (res.status === 200) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Task started successfully', 'success').apply()
         }
       })
-      .catch(err => Notification('Task could not started , please try again', 'error').apply())
+      .catch(err => {
+        console.log(err)
+        return Notification('Task could not started , please try again', 'error').apply()
+      })
   }
 
   useEffect(() => {

@@ -32,18 +32,25 @@ const Row = props => {
     return await api
       .post('change-role/', { role: selected })
       .then(res => {
-        if (res.status === 200) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Role changed successfully', 'success').apply()
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => {
+        console.log(err)
+        return Notification('Failed to change role', 'error').apply()
+      })
   }
 
   const handleDelete = async event => {
     return await api.post('delete-user/', { id: row.id }).then(res => {
-      if (res.status === 200) {
+      if (200 <= res.status && res.status < 300) {
         return Notification('User deleted successfully', 'success').apply()
       }
+    })
+    .catch(err => {
+      console.log(err)
+      return Notification('Failed to delete user', 'error').apply()
     })
   }
 

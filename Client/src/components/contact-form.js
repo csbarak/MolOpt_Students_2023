@@ -28,11 +28,12 @@ const ContactForm = () => {
     return await api
       .post('/contact-admin/', { type: selection, email: message })
       .then(res => {
-        if (res.status >= 200 && res.status < 300) 
+        if (200 <= res.status && res.status < 300) 
           return Notification('Message send successfully', 'success').apply()
       })
       .catch(err => {
         console.log(err)
+        return Notification('Failed to send message', 'error').apply()
       })
   }
   return (

@@ -94,14 +94,17 @@ const LoginPage = () => {
     return await api
       .post('login/', body)
       .then(res => {
-        if (res.status === 200) {
+        if (200 <= res.status && res.status < 300) {
           console.log(res.data.token)
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()
         }
       })
-      .catch(err => Notification(err, 'error').apply())
+      .catch(err => {
+        console.log(err)
+        return Notification('Failed to login', 'error').apply()
+      })    
   }
 
   return (
