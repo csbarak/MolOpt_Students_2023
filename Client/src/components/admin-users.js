@@ -60,7 +60,7 @@ const Row = props => {
         </TableCell>
         <TableCell align='right'>{row.firstName}</TableCell>
         <TableCell align='right'>{row.email}</TableCell>
-        <TableCell align='right'>{row.company.name}</TableCell>
+        {/* <TableCell align='right'>{row.company.name}</TableCell> */}
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -109,20 +109,21 @@ const AdminUsers = () => {
   const [page, setPage] = useState(0)
   const [rowPage, setRowPage] = useState(5)
 
-  useEffect(async () => {
-    return await axios.get('https://dummyjson.com/users').then(res => setUsers(res.data.users))
-  }, [])
-
   // useEffect(async () => {
-  //   return await api
-  //     .get('/users')
-  //     .then(res => {
-  //       if (res.status === 200) {
-  //         setUsers(res.data)
-  //       }
-  //     })
-  //     .catch(err => console.log(err))
+  //   return await axios.get('https://dummyjson.com/users').then(res => setUsers(res.data.users))
   // }, [])
+
+  useEffect(async () => {
+    return await api
+      .get('/users/')
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          setUsers(res.data)
+          console.log(users)
+        }
+      })
+      .catch(err => console.log(err))
+  }, [])
 
   const handleChangePage = (event, newpage) => {
     setPage(newpage)

@@ -26,9 +26,10 @@ const ContactForm = () => {
 
   const handleOnClick = async () => {
     return await api
-      .post('contact-admin/', { type: selection, email: message })
+      .post('/contact-admin/', { type: selection, email: message })
       .then(res => {
-        if (res.status === 200) return Notification('Message send successfully', 'success').apply()
+        if (res.status >= 200 && res.status < 300) 
+          return Notification('Message send successfully', 'success').apply()
       })
       .catch(err => {
         console.log(err)

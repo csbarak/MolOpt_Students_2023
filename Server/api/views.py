@@ -78,16 +78,16 @@ class getAllUsers(APIView):
 
 
 class getUser(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
-    def get(self, request):
+    def post(self, request):
         try:
             user_id = request.data['user_id']
-            user = User.objects.get(pk=user_id)
-            if not request.user.email == user.email and not request.user.is_staff:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User can see other users profile'})
+            user = User.objects.get(email=user_id)
+            # if not request.user.email == user.email and not request.user.is_staff:
+            #     return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User can see other users profile'})
 
-            return Response(status=status.HTTP_200_OK, data={"id": user.pk, "email": user.email, "first_name": user.first_name, "last_name": user.last_name, "position": user.position, "affiliation": user.affiliation, "is_staff": user.is_staff})
+            return Response(status=status.HTTP_200_OK, data={"id": user.id, "email": user.email, "first_name": user.first_name, "last_name": user.last_name, "position": user.position, "affiliation": user.affiliation, "is_staff": user.is_staff})
 
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[getUser] ' + str(e)})
