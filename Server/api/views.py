@@ -28,9 +28,9 @@ from api import serializers
 
 
 ADMIN_EMAILS = {
-    'suggestion': 'nofarrozenberg1@gmail.com',
-    'problem': 'nofarrozenberg2@gmail.com',
-    'other': 'nofarrozenberg3@gmail.com'
+    'Report a bug': 'nofarrozenberg1@gmail.com',
+    'Report a problem': 'nofarrozenberg2@gmail.com',
+    'Suggestion': 'nofarrozenberg3@gmail.com'
 }
 
 
@@ -94,12 +94,12 @@ class getUser(APIView):
 
 
 class CheckPermissions(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
             pk = request.data['user_id']
-            user = User.objects.get(pk=pk)
+            user = User.objects.get(email=pk)
             return Response(status=status.HTTP_200_OK, data={"is_admin": user.is_staff})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[CheckPermissions] ' + str(e)})
@@ -172,14 +172,14 @@ class DeleteUserFromSystem(APIView):
 
 
 class ContactAdmin(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
             subject = request.data['subject']
             pk = request.data['user_id']
             message = request.data['message']
-            user = User.objects.get(pk=pk)
+            user = User.objects.get(email=pk)
             user_email = user.email
             body = f"Contact Admin Message From User: {user_email}\nMessage:\n{message}"
             to_email = ADMIN_EMAILS[subject]
