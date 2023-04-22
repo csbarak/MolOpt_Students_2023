@@ -1,6 +1,6 @@
 import React from 'react'
 // ** React Imports
-import { useState, Fragment } from 'react'
+import { useState } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -18,13 +18,25 @@ import Typography from '@mui/material/Typography'
 import LogoutVariant from 'mdi-material-ui/LogoutVariant'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import api from './api'
+import { useEffect } from 'react'
+import { useCookies } from 'react-cookie'
 
 const UserDropdown = () => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
+  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // ** Hooks
   const router = useRouter()
+
+  useEffect(async () => {
+    return api.post('check_permissions/', { user_id: cookies.id }).then(res => {
+      if (res.status >= 200 && res.status < 300) {
+        setIsAdmin(res.data.is_admin)
+      }
+    })
+  }, [])
 
   const handleDropdownOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -37,13 +49,8 @@ const UserDropdown = () => {
     setAnchorEl(null)
   }
   const handleLogout = () => {
-    const config = {
-      // headers: {
-      //   Token: "Bearer b5dfc7f5bf346c5aedc96d0b4b06fce181f5ff7a"
-      // }
-    }
     api
-      .post('logout/', {},config)
+      .post('logout/', {}, {})
       .then(res => {
         if (res) {
           router.push('/')
@@ -76,7 +83,7 @@ const UserDropdown = () => {
         sx={{ ml: 2, cursor: 'pointer' }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Avatar alt='John Doe' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} />
+        <Avatar alt={cookies.id} onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -89,12 +96,12 @@ const UserDropdown = () => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Badge overlap='circular' anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-              <Avatar alt='John Doe' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt={cookies.id} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{cookies.id}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {isAdmin ? 'Admin' : 'User'}
               </Typography>
             </Box>
           </Box>

@@ -88,18 +88,17 @@ const RegisterPage = () => {
       .post('users/', body)
       .then(res => {
         console.log(res)
-        if (res.status === 201) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Registered successfully', 'success', () => {
             router.push('/')
           }).apply()
         }
-        if (res.status === 400) {
-          return Notification('EMail already exists in the system', 'error', () => {
-            router.push('/')
-          }).apply()
-        }
       })
-      .catch(err => Notification(err, 'error').apply())
+      .catch(err => {
+        console.log(err)
+        return Notification('Failed to register', 'error').apply()
+      })
+        
   }
 
   // ** Hook
