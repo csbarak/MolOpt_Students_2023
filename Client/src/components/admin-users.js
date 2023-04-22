@@ -175,7 +175,7 @@ const AdminUsers = () => {
         </TableHead>
         <TableBody>
           {users?.slice(page * rowPage, page * rowPage + rowPage).map(user => {
-            console.log(user)
+            // console.log(user)
             return <Row key={user.id} row={user} />
           })}
         </TableBody>
