@@ -12,24 +12,24 @@ import {
 // ** React imports
 import { useState, useEffect } from 'react'
 import api from './api'
+import { useCookies } from 'react-cookie'
 
 const navigation = () => {
   const [isAdmin, setIsAdmin] = useState(false)
+  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
 
   useEffect(async () => {
     return await api
-      .post('/check_permissions/' , {"user_id": "Admin@gmail.com"})   // TODO: Change the user_id to the logged-in user!
+      .post('/check_permissions/', { user_id: cookies.id })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)
-          // setIsAdmin(true)
         }
       })
       .catch(err => console.log(err))
   }, [])
 
-  if(isAdmin)
-  {
+  if (isAdmin) {
     return [
       {
         title: 'Dashboard',
@@ -41,44 +41,42 @@ const navigation = () => {
         icon: CalculatorVariantOutline,
         path: '/algorithms'
       },
-  
+
       {
         title: 'Tasks',
         icon: ClipboardTextClock,
         path: '/tasks'
       },
-  
+
       {
         title: 'Contact',
         icon: EmailFastOutline,
         path: '/contact'
       },
-  
+
       {
         title: 'FAQ',
         icon: FrequentlyAskedQuestions,
         path: '/faq'
       },
-  
+
       {
         sectionTitle: 'Admin Interface'
       },
-  
+
       {
         title: 'User Managment',
         icon: Account,
         path: '/user-managment'
       },
-  
+
       {
         title: 'Statistics',
         icon: ChartBellCurve,
         path: '/statistics'
       }
     ]
-  }
-  else 
-  {
+  } else {
     return [
       {
         title: 'Dashboard',
@@ -90,19 +88,19 @@ const navigation = () => {
         icon: CalculatorVariantOutline,
         path: '/algorithms'
       },
-  
+
       {
         title: 'Tasks',
         icon: ClipboardTextClock,
         path: '/tasks'
       },
-  
+
       {
         title: 'Contact',
         icon: EmailFastOutline,
         path: '/contact'
       },
-  
+
       {
         title: 'FAQ',
         icon: FrequentlyAskedQuestions,

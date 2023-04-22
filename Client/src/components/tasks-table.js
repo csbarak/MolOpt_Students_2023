@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import api from './api'
 import { useCookies } from 'react-cookie'
+import { saveAs } from 'file-saver'
 
 const statusObj = {
   running: { color: 'info' },
@@ -30,12 +31,11 @@ const TasksTable = () => {
   const [rowPage, setRowPage] = useState(5)
   const [tasks, setTasks] = useState([])
   const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
-  const [file, setFile] = useState(null)
 
   useEffect(async () => {
     return await api
       .post('get_user_runs/', { email: cookies.id })
-      .then(res => setTasks(res.data))
+      .then(res => setTasks(res.data?.reverse()))
       .catch(err => console.log(err))
   }, [])
 
@@ -50,17 +50,19 @@ const TasksTable = () => {
 
   const handleDownload = async e => {
     e.preventDefault()
-    return await api
-      .post('download_result/', { id: e.target.id })
-      .then(res => {
-        const url = window.URL.createObjectURL(new Blob([res.data]))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', 'test.zip')
-        document.body.appendChild(link)
-        link.click()
+    try {
+      const response = await fetch('http://localhost:8000/api/download_result/', {
+        method: 'POST',
+        body: JSON.stringify({ id: e.target.id }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
-      .catch(err => console.log(err))
+      const blob = await response.blob()
+      saveAs(blob, 'result.zip')
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -77,40 +79,37 @@ const TasksTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {tasks
-              ?.reverse()
-              .slice(page * rowPage, page * rowPage + rowPage)
-              .map(row => (
-                <TableRow hover key={row.id} sx={{ '&:last-of-type td, &:last-of-type th': { border: 0 } }}>
-                  <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important' }}>Task {row.id}</Typography>
-                      <Typography variant='caption'>{row.algorithm_name}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>{row?.time?.split('T')[0]}</TableCell>
-                  <TableCell>{row?.time?.split('T')[1].split('.')[0]}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.status}
-                      color={statusObj[row.status].color}
-                      sx={{
-                        height: 24,
-                        fontSize: '0.75rem',
-                        textTransform: 'capitalize',
-                        '& .MuiChip-label': { fontWeight: 500 }
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title='Not Implemented yet' placement='left' arrow>
-                      <a href='#' onClick={e => handleDownload(e)} id={row.id}>
-                        Download
-                      </a>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
+            {tasks.slice(page * rowPage, page * rowPage + rowPage).map(row => (
+              <TableRow hover key={row.id} sx={{ '&:last-of-type td, &:last-of-type th': { border: 0 } }}>
+                <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important' }}>Task {row.id}</Typography>
+                    <Typography variant='caption'>{row.algorithm_name}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>{row?.time?.split('T')[0]}</TableCell>
+                <TableCell>{row?.time?.split('T')[1].split('.')[0]}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={row.status}
+                    color={statusObj[row.status].color}
+                    sx={{
+                      height: 24,
+                      fontSize: '0.75rem',
+                      textTransform: 'capitalize',
+                      '& .MuiChip-label': { fontWeight: 500 }
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title='Not Implemented yet' placement='left' arrow>
+                    <a href='#' onClick={e => handleDownload(e)} id={row.id}>
+                      Download
+                    </a>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <TablePagination

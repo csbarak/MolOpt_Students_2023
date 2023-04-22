@@ -1,7 +1,7 @@
 import io
 from dataclasses import fields
 from django.core.serializers import serialize
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseServerError
 
 from .serializers import UserAlgoritmRunSerializer
 from .models import UserProfile as User
@@ -465,11 +465,23 @@ class UserDownloadResultApiView(APIView):
         rId = request.data['id']
         run = UserAlgoritmRun.objects.get(id=rId)
         files = run.result.split('@')
-        with zipfile.ZipFile(os.path.join(fs.location, f'Result{rId}.zip'), 'w', zipfile.ZIP_DEFLATED) as result:
+        print(files)
+
+        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
             for f in files:
                 if os.path.exists(os.path.join(fs.location, f)):
-                    result.write(os.path.join(fs.location, f))
-        with open(os.path.join(fs.location , f'Result{rId}.zip'), 'rb') as result:
-            response = HttpResponse(result.read(), content_type='application/zip')
-            response['Content-Disposition'] = 'attachment; filename=Result.zip'
+                    result.write(fs.path(f), arcname=os.path.basename(f))
+
+        # Test the integrity of the generated ZIP file
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_obj:
+            if zip_obj.testzip() is not None:
+                # The ZIP file is invalid or incomplete
+                return HttpResponseServerError('Generated ZIP file is invalid')
+
+        # If the ZIP file is valid, create a response object to download it
+        with open(zip_file_path, 'rb') as f:
+            response = HttpResponse(f, content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename=test.zip'
             return response
