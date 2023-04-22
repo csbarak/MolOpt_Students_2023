@@ -200,11 +200,14 @@ const AutoProcess = ({
       return await api
         .post('run_auto_process/', body)
         .then(res => {
-          if (res.status === 200) {
+          if (200 <= res.status && res.status < 300) {
             return Notification('Task started successfully', 'success').apply()
           }
         })
-        .catch(err => Notification('Task could not started , please try again', 'error').apply())
+        .catch(err => {
+          console.log(err)
+          return Notification('Task could not started , please try again', 'error').apply()
+        })
     }
     if (value === '2') {
       if (isRDKit || isMordred) {
@@ -215,11 +218,14 @@ const AutoProcess = ({
         return await api
           .post('run_feature/', body)
           .then(res => {
-            if (res.status === 200) {
+            if (200 <= res.status && res.status < 300) {
               return Notification('Task started successfully', 'success').apply()
             }
           })
-          .catch(err => Notification('Task could not started , please try again', 'error').apply())
+          .catch(err => {
+            console.log(err)
+            return Notification('Task could not started , please try again', 'error').apply()
+          })
       }
     }
     const formData = new FormData()
@@ -239,11 +245,14 @@ const AutoProcess = ({
     return await api
       .post('run_ML_algorithms/', body)
       .then(res => {
-        if (res.status === 200) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Task started successfully', 'success').apply()
         }
       })
-      .catch(err => Notification('Task could not started , please try again', 'error').apply())
+      .catch(err => {
+        console.log(err)
+        return Notification('Task could not started , please try again', 'error').apply()
+      })
   }
 
   return (

@@ -18,22 +18,37 @@ import {
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import api from './api'
 import Notification from './notification'
+import { useRouter } from 'next/router'
 
 const ContactForm = () => {
+  const router = useRouter()
+
   const [selection, setSelection] = useState('')
   const [message, setMessage] = useState('')
   const options = ['Report a bug', 'Report a problem', 'Suggestion']
 
   const handleOnClick = async () => {
+    const body = {
+      "subject": selection,
+      "user_id": "Admin@gmail.com",   // TODO: Get user_id/email from cookies
+      "message": message
+    }
+
     return await api
-      .post('contact-admin/', { type: selection, email: message })
+      .post('/contact-admin/', body)
       .then(res => {
-        if (res.status === 200) return Notification('Message send successfully', 'success').apply()
+        if (200 <= res.status && res.status < 300) 
+          return Notification('Message send successfully', 'success', () => {
+            router.push('/dashboard')
+          }).apply()
       })
       .catch(err => {
         console.log(err)
+        return Notification('Failed to send message', 'error').apply()
       })
   }
+
+  
   return (
     <Card>
       <CardHeader title='Send Message' titleTypographyProps={{ variant: 'h6' }} />
