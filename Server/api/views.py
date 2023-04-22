@@ -106,67 +106,67 @@ class CheckPermissions(APIView):
 
 
 class CreateSystemAdminApiView(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
-            if request.user.is_staff:
-                pk = request.data['user_id']
-                if pk is not None:
-                    user = User.objects.get(pk=pk)
-                    if user is not None:
+            pk = request.data['user_id']
+            if pk is not None:
+                user = User.objects.get(id=pk)
+                if user is not None:
+                    if not user.is_staff:
                         user.is_staff = True
                         user.save()
-                        return Response(status=status.HTTP_200_OK, data={'message': f'{user.first_name} {user.last_name} is admin '})
-
+                        return Response(status=status.HTTP_200_OK, data={'message': f'{user.first_name} {user.last_name} is now an admin '})
                     else:
-                        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User w/ email: {email} does not exists"})
+                        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'User w/ email: {user.email} is already an admin'})
                 else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'User w/ email: {user.email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not authenticated"})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {pk}'})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[CreateSystemAdminApiView] ' + str(e)})
 
 
 class RemoveSystemAdminApiView(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
-            if IsAdminUser and request.user.is_staff:
-                pk = request.data['user_id']
-                if pk is not None:
-                    user = User.objects.get(pk=pk)
-                    if user is not None:
+            pk = request.data['user_id']
+            if pk is not None:
+                user = User.objects.get(id=pk)
+                if user is not None:
+                    if user.is_staff:
                         user.is_staff = False
                         user.save()
-                        return Response(status=status.HTTP_200_OK, data={'message': f'{user.first_name} {user.last_name} is not admin '})
-
+                        return Response(status=status.HTTP_200_OK, data={'message': f'{user.first_name} {user.last_name} is now a regular user '})
                     else:
-                        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User w/ email: {email} does not exists"})
+                        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'User w/ email: {user.email} is already a regular user'})
                 else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'User w/ email: {user.email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not authenticated"})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {pk}'})
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[RemoveSystemAdminApiView] ' + str(e)})
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[CreateSystemAdminApiView] ' + str(e)})
 
 
 class DeleteUserFromSystem(APIView):
-    permission_classes = ([IsAuthenticated])
+    # permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
-            if IsAdminUser and request.user.is_staff:
-                pk = request.data['user_id']
-                if pk is not None:
-                    user = User.objects.filter(pk=pk).delete()
-                    return Response(status=status.HTTP_200_OK, data={'message': f'{user.first_name} {user.last_name} is not admin '})
-                else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
+            # if IsAdminUser and request.user.is_staff:     # TODO: Need to get the user requesting to delete..
+            pk = request.data['user_id']
+            if pk is not None:
+                user = User.objects.get(pk=pk)
+                print(user)
+                user.delete()
+                return Response(status=status.HTTP_200_OK, data={'message': f'The user with the id #{pk} has been deleted'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not authenticated"})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
+            # else:
+            #     return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not authenticated"})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[DeleteUserFromSystem] ' + str(e)})
 
