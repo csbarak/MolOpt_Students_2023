@@ -18,11 +18,11 @@ const navigation = () => {
 
   useEffect(async () => {
     return await api
-      .post('/check_permissions/' , {"user_id": "Admin@gmail.com"})   // TODO: Change the user_id to the logged-in user
+      .post('/check_permissions/' , {"user_id": "Admin@gmail.com"})   // TODO: Change the user_id to the logged-in user!
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)
-          setIsAdmin(true)  // TODO: Remove this when admin managing is ready in the system
+          // setIsAdmin(true)
         }
       })
       .catch(err => console.log(err))
