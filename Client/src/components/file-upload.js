@@ -11,6 +11,7 @@ import AutoProcess from './auto-process'
 import { validate } from './validate-file-type'
 import api from './api'
 import Notification from 'src/components/notification'
+import { useCookies } from 'react-cookie'
 
 const FileUpload = () => {
   const [value, setValue] = useState('1')
@@ -19,6 +20,7 @@ const FileUpload = () => {
   const [selectedAlignmentFile, setSelectedAlignmentFile] = useState(null)
   const [selectedDatasetFile, setSelectedDatasetFile] = useState(null)
   const [autoController, setAutoController] = useState(false)
+  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -60,8 +62,8 @@ const FileUpload = () => {
     e.preventDefault()
     const formData = new FormData()
     formData.append('ref', selectedRefFile)
-    formData.append('db', selectedLigandFile)
-    console.log('alignment', formData)
+    formData.append('ligand', selectedLigandFile)
+    formData.append('email', cookies.id)
     return await api
       .post('run_alignment/', formData)
       .then(res => {

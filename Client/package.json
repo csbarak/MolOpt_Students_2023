@@ -46,6 +46,8 @@
     "axios": "^1.2.1",
     "bootstrap": "^5.2.3",
     "clsx": "^1.1.1",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
     "material-ui-player": "^1.0.10",
     "mdi-material-ui": "^7.6.0",
     "next": "^12.1.1",

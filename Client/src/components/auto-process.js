@@ -30,6 +30,7 @@ import { clearFields, clearAll } from './clear-fields'
 import { validate } from './validate-file-type'
 import api from './api'
 import Notification from 'src/components/notification'
+import { useCookies } from 'react-cookie'
 
 const AutoProcess = ({
   setAutoController,
@@ -70,6 +71,7 @@ const AutoProcess = ({
   const [lassoSelection, setLassoSelection] = useState([])
   const [bindingSelection, setBindingSelection] = useState(null)
   const [multipleAlgoSelection, setMultipleAlgoSelection] = useState([])
+  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
 
   useEffect(() => {
     return clearFields(
@@ -173,32 +175,31 @@ const AutoProcess = ({
     if (value === '1') {
       const formData = new FormData()
       formData.append('ref', selectedRefFile)
-      formData.append('db', selectedLigandFile)
+      formData.append('ligand', selectedLigandFile)
       formData.append('binding', bindingSelection)
-      const body = {
-        files: formData,
-        xgboost: isXGBoostAlgo,
-        dtr: isDTR,
-        lasso: isLasso,
-        isAutoXGBoost: isAutoXGBoost,
-        isAutoDTR: isAutoDTR,
-        isAutoLasso: isAutoLasso,
-        xgboostValue: {
-          auto: { numberOfFeatures: xgboostValue.numberOfFeatures },
-          manual: { ...xgboostValue, features: xgboostSelection }
-        },
-        dtrValue: {
-          auto: { numberOfFeatures: dtrValue.numberOfFeatures },
-          manual: { dtrValue, features: dtrSelection }
-        },
-        lassoValue: {
-          auto: { numberOfFeatures: numberOfFeaturesLasso },
-          manual: { lassoValue, features: lassoSelection }
-        }
-      }
-      console.log('auto process', body)
+      formData.append('xgboost', {
+        numberOfFeatures: xgboostValue.numberOfFeatures,
+        isXGBoost: isXGBoostAlgo,
+        isAuto: !isAutoXGBoost,
+        xgboostValue: xgboostValue,
+        features: xgboostSelection
+      })
+      formData.append('dtr', {
+        isDTR: isDTR,
+        isAuto: !isAutoDTR,
+        dtrValue: dtrValue,
+        features: dtrSelection,
+        numberOfFeatures: dtrValue.numberOfFeatures
+      })
+      formData.append('lasso', {
+        isLasso: isLasso,
+        isAuto: !isAutoLasso,
+        lassoValue: lassoValue,
+        features: lassoSelection,
+        numberOfFeatures: numberOfFeaturesLasso
+      })
       return await api
-        .post('run_auto_process/', body)
+        .post('run_auto_process/', formData)
         .then(res => {
           if (200 <= res.status && res.status < 300) {
             return Notification('Task started successfully', 'success').apply()
@@ -213,10 +214,11 @@ const AutoProcess = ({
       if (isRDKit || isMordred) {
         const formData = new FormData()
         formData.append('mol', selectedAlignmentFile)
-        const body = { file: formData, rdkit: isRDKit, mordred: isMordred }
-        console.log('feature process', body)
+        formData.append('email', cookies.id)
+        formData.append('RDKit', isRDKit)
+        formData.append('Mordred', isMordred)
         return await api
-          .post('run_feature/', body)
+          .post('run_feature/', formData)
           .then(res => {
             if (200 <= res.status && res.status < 300) {
               return Notification('Task started successfully', 'success').apply()
@@ -230,20 +232,30 @@ const AutoProcess = ({
     }
     const formData = new FormData()
     formData.append('csv', selectedDatasetFile)
-    const body = {
-      file: formData,
-      xgboost: {
-        isXGBoost: isXGBoostAlgo,
-        isAuto: !isAutoXGBoost,
-        xgboostValue: xgboostValue,
-        features: xgboostSelection
-      },
-      dtr: { isDTR: isDTR, isAuto: !isAutoDTR, dtrValue: dtrValue, features: dtrSelection },
-      lasso: { isLasso: isLasso, isAuto: !isAutoLasso, lassoValue: lassoValue, features: lassoSelection }
-    }
-    console.log('run algorithms', body)
+    formData.append('email', cookies.id)
+    formData.append('xgboost', {
+      numberOfFeatures: xgboostValue.numberOfFeatures,
+      isXGBoost: isXGBoostAlgo,
+      isAuto: !isAutoXGBoost,
+      xgboostValue: xgboostValue,
+      features: xgboostSelection
+    })
+    formData.append('dtr', {
+      isDTR: isDTR,
+      isAuto: !isAutoDTR,
+      dtrValue: dtrValue,
+      features: dtrSelection,
+      numberOfFeatures: dtrValue.numberOfFeatures
+    })
+    formData.append('lasso', {
+      isLasso: isLasso,
+      isAuto: !isAutoLasso,
+      lassoValue: lassoValue,
+      features: lassoSelection,
+      numberOfFeatures: numberOfFeaturesLasso
+    })
     return await api
-      .post('run_ML_algorithms/', body)
+      .post('run_ML_algorithms/', formData)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           return Notification('Task started successfully', 'success').apply()

@@ -34,6 +34,7 @@ import themeConfig from 'src/configs/themeConfig'
 import BlankLayout from 'src/components/blank-layout'
 import Notification from 'src/components/notification'
 import ForgotPassword from 'src/components/forgot-password'
+import { useCookies } from 'react-cookie'
 
 // ** Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -67,6 +68,7 @@ const LoginPage = () => {
     showPassword: false
   })
   const [showForgot, setShowForgot] = useState(false)
+  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
 
   // ** Hook
   const theme = useTheme()
@@ -95,7 +97,9 @@ const LoginPage = () => {
       .post('login/', body)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          console.log(res.data.token)
+          console.log('token', res.data.token)
+          setCookie('id', values.email, { path: '/', sameSite: true })
+          console.log('cookie', cookies)
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()
@@ -104,7 +108,7 @@ const LoginPage = () => {
       .catch(err => {
         console.log(err)
         return Notification('Failed to login', 'error').apply()
-      })    
+      })
   }
 
   return (
