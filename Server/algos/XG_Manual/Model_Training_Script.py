@@ -1,4 +1,4 @@
-def make_it_train(filename, features, param_learning_rate, param_max_depth, param_lambda, param_alpha, param_rate_drop):
+def make_it_train(filename, features, param_learning_rate, param_max_depth, param_lambda, param_alpha, param_rate_drop,id):
     import pandas
     import os
     import pickle
@@ -27,7 +27,7 @@ def make_it_train(filename, features, param_learning_rate, param_max_depth, para
                          objective='reg:squarederror',
                          eval_metric='rmse')
     eval_metric = ["rmse"]
-    print(eval_metric)
+    # print(eval_metric)
     model.fit(X_train, y_train, eval_metric=eval_metric)
-    with open('Your_model.pkl', 'wb') as file:
+    with open(f'XG_Model_Manual{id}.pkl', 'wb') as file:
         pickle.dump(model, file)

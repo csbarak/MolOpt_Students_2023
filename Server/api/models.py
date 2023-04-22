@@ -74,14 +74,15 @@ class UserAlgoritmRun(models.Model):
     """User algoritm run document - allowed insure to not create feed to user that not exists"""
     # --> on_delete: if we want that runs history wii not be deleted when deleting user - DO_NOTHING | SET_NULL | PROTECT
     id = models.AutoField(primary_key=True)
-    user_email = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
+    # user_email = models.ForeignKey(
+    #     settings.AUTH_USER_MODEL,
+    #     on_delete=models.CASCADE
+    # )
+    user_email=models.EmailField(max_length=255)
     algorithm_name = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     time = models.DateTimeField(auto_now_add=True)
-
+    result=models.CharField(max_length=255)
     def __str__(self):
         """Return the model as a string"""
         return 'Algorithm ' + self.algorithm_id + ' created on ' + self.created_on

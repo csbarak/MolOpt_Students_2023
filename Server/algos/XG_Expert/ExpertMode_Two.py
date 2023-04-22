@@ -1,4 +1,4 @@
-def make_it_rain(filename, Num_Features):
+def make_it_rain(filename, Num_Features,id):
     import pandas
     import os
     import pickle
@@ -11,7 +11,7 @@ def make_it_rain(filename, Num_Features):
     fs = FileSystemStorage()
     os.chdir(fs.location)
     dataframe = pandas.read_csv(filename)
-    with open("TopFeatures.txt") as f:
+    with open(f"TopFeaturesXG{id}.txt") as f:
         mylist = f.read().splitlines()
     SelectedFeatures = mylist[0:Num_Features]
 
@@ -71,7 +71,7 @@ def make_it_rain(filename, Num_Features):
     error_value = mean_squared_error(y_test, preds)
     value = str(error_value)
     print("Final RMSE Value: ", error_value)
-    with open('Expert_Mode_NotInitial.pkl', 'wb') as file:
+    with open(f'Expert_Mode_NotInitial{id}.pkl', 'wb') as file:
         pickle.dump(model1, file)
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write(value)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write(value)

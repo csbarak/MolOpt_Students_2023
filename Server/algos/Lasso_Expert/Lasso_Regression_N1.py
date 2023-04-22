@@ -1,4 +1,4 @@
-def make_it_rain(filename):
+def make_it_rain(filename,id):
     import os
     import pandas
     import numpy as np
@@ -39,13 +39,13 @@ def make_it_rain(filename):
     ImportantFeatures = list(np.array(features)[importance > 0])
     TopImportantFeatures = ImportantFeatures[0:10]
     arr = np.array(TopImportantFeatures)
-    with open("TopFeatures.txt", "w") as txt_file:
+    with open(f"TopFeaturesLasso{id}.txt", "w") as txt_file:
         for line in arr:
             txt_file.write("".join(line) + "\n")  # works with any number of elements in a line
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write("The Mean Absolute Error is ")
-    txt_file.write(MeanAbsoluteErrorWrite)
-    txt_file.write("The Mean Squared Error is")
-    txt_file.write(MeanSquaredErrorWrite)
-    txt_file.write("The Root Mean Squared Error is")
-    txt_file.write(RootMeanSquaredErrorWrite)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write("The Mean Absolute Error is ")
+    # txt_file.write(MeanAbsoluteErrorWrite)
+    # txt_file.write("The Mean Squared Error is")
+    # txt_file.write(MeanSquaredErrorWrite)
+    # txt_file.write("The Root Mean Squared Error is")
+    # txt_file.write(RootMeanSquaredErrorWrite)
