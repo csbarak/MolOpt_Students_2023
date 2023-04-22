@@ -1,6 +1,5 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-
 from rest_framework.routers import DefaultRouter
 from api import views
 
@@ -24,9 +23,11 @@ urlpatterns = [
     path('remove_admin/',               views.RemoveSystemAdminApiView.as_view()),          # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('delete_user/',                views.DeleteUserFromSystem.as_view()),              # body of the api is all the new user birthdate, phone, country, languages, gender.
     path('run_alignment/',              views.UserRunAlignmentApiView.as_view()),           # body of the api is 2 files
-    path('run_Mordred/',                views.UserRunMordredApiView.as_view()),             # body of the api is 1 file and list of packages to run
-    path('run_RDKit/',                  views.UserRunRDKitApiView.as_view()),               # body of the api is 1 file and list of packages to run
+    path('run_feature/',                views.UserRunFeatureExtractionApiView.as_view()),   # body of the api is 1 file and list of packages to run
     path('run_ML_algorithms/',          views.UserRunMLAlgorithmsApiView.as_view()),        # body of the api is 1 file and list of dictionaries (dict foreach alg)
+    path('get_all_runs/',               views.UserGetAllRunsApiView.as_view()),
+    path('get_user_runs/',              views.UserGetUserRunsApiView.as_view()),
+    path('download_result/',            views.UserDownloadResultApiView.as_view()),
     
     ### get:
     # path('tasks/',                    views.TasksApiView.as_view()),

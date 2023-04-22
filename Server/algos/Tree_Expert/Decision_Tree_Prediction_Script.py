@@ -3,7 +3,7 @@ This is the file which is responsible to generate csv file containing the predic
 """
 
 
-def make_it_rain(filename, num_pred_features):
+def make_it_rain(filename, num_pred_features,id):
     import pandas
     import pickle
     import os
@@ -11,11 +11,11 @@ def make_it_rain(filename, num_pred_features):
     fs = FileSystemStorage()
     os.chdir(fs.location)
     dataframe = pandas.read_csv(filename)
-    with open("TopFeatures.txt") as f:
+    with open(f"TopFeaturesDTR{id}.txt") as f:
         mylist = f.read().splitlines()
     SelectedFeatures = mylist[0:num_pred_features]
     X = dataframe
     X = X[SelectedFeatures]
-    model = pickle.load(open('Decision_Tree_Regressor_NotInitial.pkl',"rb"))
+    model = pickle.load(open(f'Decision_Tree_Regressor_NotInitial{id}.pkl',"rb"))
     predictions = model.predict(X)
-    pandas.DataFrame(predictions, columns=['predictions']).to_csv('Predicted_Results.csv', header=True)
+    pandas.DataFrame(predictions, columns=['predictions']).to_csv(f'Predicted_Results_dtr{id}.csv', header=True)

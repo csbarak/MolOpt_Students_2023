@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 
-def make_it_run(filename):
+def make_it_run(filename,id):
     from rdkit import Chem
     from rdkit.Chem.Pharm2D import Gobbi_Pharm2D
     factory = Gobbi_Pharm2D.factory
@@ -85,9 +85,7 @@ def make_it_run(filename):
                     m = Chem.MolFromMol2Block(block, sanitize=sanitize)
                 mols.append(m)
         return (mols)
-
-    filePath = filename
-    database = Mol2MolSupplier_1(filePath, sanitize=False)
+    database = Mol2MolSupplier_1(filename, sanitize=False)
     import pandas as pd
     table = pd.DataFrame()
     index = 0
@@ -195,4 +193,4 @@ def make_it_run(filename):
         table.loc[index, 'NumSpiroAtoms'] = rdMolDescriptors.CalcNumSpiroAtoms(mol)
         table.loc[index, 'PBF'] = rdMolDescriptors.CalcPBF(mol)
         index = index + 1
-    export_csv=table.to_csv('FeaturesExtracted_RDKIT.csv', header=True)
+    table.to_csv('FeaturesExtracted_RDKIT'+str(id)+'.csv', header=True)

@@ -1,4 +1,4 @@
-def make_it_rain(filename, Num_Features):
+def make_it_rain(filename, Num_Features,id):
     import pandas
     import pickle
     import os
@@ -13,7 +13,7 @@ def make_it_rain(filename, Num_Features):
     fs = FileSystemStorage()
     os.chdir(fs.location)
     dataframe = pandas.read_csv(filename)
-    with open("TopFeatures.txt") as f:
+    with open(f"TopFeaturesLasso{id}.txt") as f:
         mylist = f.read().splitlines()
     SelectedFeatures = mylist[0:Num_Features]
     X = dataframe
@@ -32,7 +32,7 @@ def make_it_rain(filename, Num_Features):
     clf = linear_model.Lasso(alpha=optimum_alpha)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
-    with open('Lasso_Regression_NotInitial.pkl', 'wb') as file:
+    with open(f'Lasso_Regression_NotInitial{id}.pkl', 'wb') as file:
         pickle.dump(clf, file)
     MeanAbsoluteError = metrics.mean_absolute_error(y_test, y_pred)
     MeanSquaredError = metrics.mean_squared_error(y_test, y_pred)
@@ -40,10 +40,10 @@ def make_it_rain(filename, Num_Features):
     MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
     MeanSquaredErrorWrite = str(MeanSquaredError)
     RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write("The Mean Absolute Error is ")
-    txt_file.write(MeanAbsoluteErrorWrite)
-    txt_file.write("The Mean Squared Error is")
-    txt_file.write(MeanSquaredErrorWrite)
-    txt_file.write("The Root Mean Squared Error is")
-    txt_file.write(RootMeanSquaredErrorWrite)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write("The Mean Absolute Error is ")
+    # txt_file.write(MeanAbsoluteErrorWrite)
+    # txt_file.write("The Mean Squared Error is")
+    # txt_file.write(MeanSquaredErrorWrite)
+    # txt_file.write("The Root Mean Squared Error is")
+    # txt_file.write(RootMeanSquaredErrorWrite)

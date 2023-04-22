@@ -25,7 +25,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 
 
-def make_it_run(ref_file, lig_db):
+def make_it_run(ref_file, lig_db,id):
     from rdkit import Chem
     from rdkit.Chem import AllChem
     from rdkit.Chem import rdFMCS
@@ -36,17 +36,15 @@ def make_it_run(ref_file, lig_db):
     os.chdir(fs.location)
     reference = Chem.MolFromMolFile(ref_file, removeHs=True)
     ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
-    w = Chem.SDWriter("aligned.sdf")  # output ligands with constrained atoms
+    w = Chem.SDWriter(f"aligned{id}.sdf")  # output ligands with constrained atoms
     #wnt = Chem.SDWriter("output_nontethered.sdf")  # output of ligands without constraints (no MCS with reference ligand)
     for mol in ligands:
         if mol == None:
             continue
         else:
-            print(mol)
+            # print(mol)
             mols = [reference, mol]
-            mcsResult = rdFMCS.FindMCS(mols, threshold=0.1,
-                                       completeRingsOnly=False)  # find the maximum common substructure
-
+            mcsResult = rdFMCS.FindMCS(mols, threshold=0.1,completeRingsOnly=False)  # find the maximum common substructure
             if mcsResult.smartsString and len(mcsResult.smartsString) > 0:
                 patt = Chem.MolFromSmarts(mcsResult.smartsString, mergeHs=True)
                 # keep only the core of the reference molecule
@@ -56,14 +54,12 @@ def make_it_run(ref_file, lig_db):
                     core.UpdatePropertyCache()
                     newmol = Chem.Mol(mol)  # create a new instance of the ligand, as we will change the coordinates
                     try:
-                        AllChem.ConstrainedEmbed(newmol,
-                                                 core)  # constrained minimization of newmol versus the core of the referenc
+                        AllChem.ConstrainedEmbed(newmol,core)  # constrained minimization of newmol versus the core of the referenc
                         tethered_atom_ids = newmol.GetSubstructMatches(patt)  # that's to get the atom ids only
                         t = tethered_atom_ids[0]
                         t1 = map(lambda x: x + 1, list(t))
                         ta = ','.join(str(el) for el in t1)
-                        nm = Chem.AddHs(newmol,
-                                        addCoords=True)  # create a new 3D molecule  and add the TETHERED ATOMS property
+                        nm = Chem.AddHs(newmol, addCoords=True)  # create a new 3D molecule  and add the TETHERED ATOMS property
                         nm.SetProp('TETHERED ATOMS', ta)
                         w.write(nm)
                     except ValueError as ve:

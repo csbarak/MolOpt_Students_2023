@@ -1,4 +1,4 @@
-def make_it_run(filename):
+def make_it_run(filename,id):
     from mordred import Calculator, descriptors
     from rdkit import Chem
     from rdkit.Chem.Pharm2D import Gobbi_Pharm2D
@@ -7,7 +7,6 @@ def make_it_run(filename):
     import os
     fs = FileSystemStorage()
     os.chdir(fs.location)
-
     def Mol2MolSupplier_1(file=None, sanitize=False):
         mols = []
         with open(file, 'r') as f:
@@ -29,8 +28,7 @@ def make_it_run(filename):
                 mols.append(m)
         return (mols)
 
-    filePath = filename
-    database = Mol2MolSupplier_1(filePath, sanitize=False)
+    database = Mol2MolSupplier_1(filename, sanitize=False)
     import pandas as pd
     table = pd.DataFrame()
     calc = Calculator(descriptors, ignore_3D=False)
@@ -1820,5 +1818,4 @@ def make_it_run(filename):
         table.loc[index, 'mZagreb1'] = MordredFeatures[1824]
         table.loc[index, 'mZagreb2'] = MordredFeatures[1825]
         index = index + 1
-
-    export_csv = table.to_csv('FeaturesExtracted_MORDRED.csv',header=True)
+    table.to_csv('FeaturesExtracted_MORDRED'+str(id)+'.csv',header=True)

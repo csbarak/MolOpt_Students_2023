@@ -1,4 +1,4 @@
-def make_it_rain(filename, features):
+def make_it_rain(filename, features,id):
     import pickle
     import os
     import pandas
@@ -8,6 +8,6 @@ def make_it_rain(filename, features):
     dataframe = pandas.read_csv(filename)
     X = dataframe[features]
     model = pickle.load(
-        open('Decision_Tree_Regressor_Manual.pkl>',"rb"))
+        open(f'Decision_Tree_Regressor_Manual{id}.pkl',"rb"))
     predictions = model.predict(X)
-    pandas.DataFrame(predictions, columns=['predictions']).to_csv('Results.csv', header=True)
+    pandas.DataFrame(predictions, columns=['predictions']).to_csv(f'Predicted_Results_dtr{id}.csv', header=True)

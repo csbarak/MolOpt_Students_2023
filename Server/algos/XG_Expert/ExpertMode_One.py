@@ -1,4 +1,4 @@
-def make_it_rain(filename):
+def make_it_rain(filename,id):
     import pandas
     import numpy as np
     import os
@@ -70,6 +70,6 @@ def make_it_rain(filename):
             important_feature.append(features[i])
     top_important_features = important_feature[0:10]
     arr = np.array(top_important_features)
-    with open("TopFeatures.txt", "w") as txt_file:
+    with open(f"TopFeaturesXG{id}.txt", "w") as txt_file:
         for line in arr:
             txt_file.write("".join(line) + "\n")  

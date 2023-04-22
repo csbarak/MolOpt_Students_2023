@@ -44,13 +44,7 @@ class UserAlgoritmRunSerializer(serializers.ModelSerializer):
     """Serializer profile feed item"""
     class Meta:
         model = models.UserAlgoritmRun
-        fields = ('id', 'user_email',
-                  'algorithm_name', 'status', 'time')
-        extra_kwargs = {
-            'user_email': {'read_only': True},
-            'algorithm_name': {'read_only': True},
-            'time': {'read_only': True},
-        }
+        fields = '__all__'
 
     def update(self, instance, validate_data):
         """Handle updating user runs - we can only update status field"""

@@ -1,4 +1,4 @@
-def make_it_rain(filename, Num_Features):
+def make_it_rain(filename, Num_Features,id):
     import pandas
     import os
     import pickle
@@ -12,7 +12,7 @@ def make_it_rain(filename, Num_Features):
     # Reading the data
     #
     dataframe = pandas.read_csv(filename)
-    with open("TopFeatures.txt") as f:
+    with open(f"TopFeaturesDTR{id}.txt") as f:
         mylist = f.read().splitlines()
     SelectedFeatures = mylist[0:Num_Features]
     X = dataframe
@@ -56,7 +56,7 @@ def make_it_rain(filename, Num_Features):
     #
     #
     # Saving the project to a file
-    with open('Decision_Tree_Regressor_NotInitial.pkl','wb') as file:
+    with open(f'Decision_Tree_Regressor_NotInitial{id}.pkl','wb') as file:
         pickle.dump(tuned_hyper_model, file)
     MeanAbsoluteError = metrics.mean_absolute_error(y_test, tuned_pred)
     MeanSquaredError = metrics.mean_squared_error(y_test, tuned_pred)
@@ -64,10 +64,10 @@ def make_it_rain(filename, Num_Features):
     MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
     MeanSquaredErrorWrite = str(MeanSquaredError)
     RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write("The Mean Absolute Error is ")
-    txt_file.write(MeanAbsoluteErrorWrite)
-    txt_file.write("The Mean Squared Error is")
-    txt_file.write(MeanSquaredErrorWrite)
-    txt_file.write("The Root Mean Squared Error is")
-    txt_file.write(RootMeanSquaredErrorWrite)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write("The Mean Absolute Error is ")
+    # txt_file.write(MeanAbsoluteErrorWrite)
+    # txt_file.write("The Mean Squared Error is")
+    # txt_file.write(MeanSquaredErrorWrite)
+    # txt_file.write("The Root Mean Squared Error is")
+    # txt_file.write(RootMeanSquaredErrorWrite)

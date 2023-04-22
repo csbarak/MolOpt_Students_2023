@@ -1,4 +1,4 @@
-def make_it_rain(filename):
+def make_it_rain(filename,id):
     import pandas
     import os
     import numpy as np
@@ -39,9 +39,9 @@ def make_it_rain(filename):
     # All the error metrics which we will display to the user
     #
     from sklearn import metrics
-    print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, tuned_pred))
-    print('Mean Squared Error:', metrics.mean_squared_error(y_test, tuned_pred))
-    print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, tuned_pred)))
+    # print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, tuned_pred))
+    # print('Mean Squared Error:', metrics.mean_squared_error(y_test, tuned_pred))
+    # print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, tuned_pred)))
     # Extracting top ten most influential features from the model
     features = dataframe.drop('BOND', axis=1).columns
     importances = tuned_hyper_model.feature_importances_
@@ -52,7 +52,7 @@ def make_it_rain(filename):
             important_feature.append(features[i])
     top_important_features = important_feature[0:10]
     arr = np.array(top_important_features)
-    with open("TopFeatures.txt", "w") as txt_file:
+    with open(f"TopFeaturesDTR{id}.txt", "w") as txt_file:
         for line in arr:
             txt_file.write("".join(line) + "\n")  # works with any number of elements in a line
     # Writing the error metrics to the file
@@ -65,10 +65,10 @@ def make_it_rain(filename):
     MeanSquaredErrorWrite = str(MeanSquaredError)
     RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
 
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write("The Mean Absolute Error is ")
-    txt_file.write(MeanAbsoluteErrorWrite)
-    txt_file.write("The Mean Squared Error is")
-    txt_file.write(MeanSquaredErrorWrite)
-    txt_file.write("The Root Mean Squared Error is")
-    txt_file.write(RootMeanSquaredErrorWrite)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write("The Mean Absolute Error is ")
+    # txt_file.write(MeanAbsoluteErrorWrite)
+    # txt_file.write("The Mean Squared Error is")
+    # txt_file.write(MeanSquaredErrorWrite)
+    # txt_file.write("The Root Mean Squared Error is")
+    # txt_file.write(RootMeanSquaredErrorWrite)

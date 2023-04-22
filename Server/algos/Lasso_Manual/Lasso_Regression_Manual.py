@@ -1,4 +1,4 @@
-def make_it_rain(filename, features, param_alpha):
+def make_it_rain(filename, features, param_alpha,id):
     # Importing the required libraries
     import numpy as np
     from sklearn.model_selection import train_test_split
@@ -36,12 +36,12 @@ def make_it_rain(filename, features, param_alpha):
     print(MeanSquaredErrorWrite)
     print(MeanAbsoluteErrorWrite)
     print(RootMeanSquaredErrorWrite)
-    with open('Lasso_Regression_Manual.pkl', 'wb') as file:
+    with open(f'Lasso_Regression_Manual{id}.pkl', 'wb') as file:
         pickle.dump(clf, file)
-    txt_file = open("CustomModel_rmse.txt", "w")
-    txt_file.write("The Mean Absolute Error is ")
-    txt_file.write(MeanAbsoluteErrorWrite)
-    txt_file.write("The Mean Squared Error is")
-    txt_file.write(MeanSquaredErrorWrite)
-    txt_file.write("The Root Mean Squared Error is")
-    txt_file.write(RootMeanSquaredErrorWrite)
+    # txt_file = open("CustomModel_rmse.txt", "w")
+    # txt_file.write("The Mean Absolute Error is ")
+    # txt_file.write(MeanAbsoluteErrorWrite)
+    # txt_file.write("The Mean Squared Error is")
+    # txt_file.write(MeanSquaredErrorWrite)
+    # txt_file.write("The Root Mean Squared Error is")
+    # txt_file.write(RootMeanSquaredErrorWrite)
