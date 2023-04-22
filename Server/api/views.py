@@ -210,10 +210,9 @@ class UserRunsViewSet(viewsets.ModelViewSet):
 fs = FileSystemStorage()
 executor = concurrent.futures.ThreadPoolExecutor()
 def Clear_media():
-    # files = fs.listdir(fs.location)
-    # for file in files[1]:
-    #     fs.delete(os.path.join(fs.location,file))
-    pass
+    files = fs.listdir(fs.location)
+    for file in files[1]:
+        fs.delete(os.path.join(fs.location,file))
 
 def runMCS(rId,data):
     if len(RUNS_QUEUE)<=MAX_PARALLEL_RUNS:
@@ -290,7 +289,7 @@ class UserRunFeatureExtractionApiView(APIView):
         
 
 def runAlgos(rId,data):
-    if len(RUNS_QUEUE<=MAX_PARALLEL_RUNS):
+    if len(RUNS_QUEUE)<=MAX_PARALLEL_RUNS:
         res=''
         if data['xgboost']['isXGBoost']:
             xg=data['xgboost']['xgboostValue']
@@ -357,7 +356,7 @@ class UserRunMLAlgorithmsApiView(APIView):
         
 
 def runAutoProcess(rId,data):
-    if len(RUNS_QUEUE<=MAX_PARALLEL_RUNS):
+    if len(RUNS_QUEUE)<=MAX_PARALLEL_RUNS:
         # runMCS(rId,data)
         sdfMolConvert('aligned')
         runFeature(rId,data)
