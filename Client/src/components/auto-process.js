@@ -24,6 +24,7 @@ import {
 } from '@mui/material'
 
 import DeleteIcon from '@mui/icons-material/Delete'
+import Fade from '@mui/material/Fade'
 import { getAllFeatures } from './feature-list'
 import { useEffect } from 'react'
 import { clearFields, clearAll } from './clear-fields'
@@ -114,7 +115,6 @@ const AutoProcess = ({
   const handleUploadBinding = e => {
     e.preventDefault()
     if (!validate(e.target.files[0], 'dataset')) {
-      //**need to add error for uploading suffix incorrect
       return
     }
     setBindingSelection(e.target.files[0])
@@ -123,13 +123,13 @@ const AutoProcess = ({
   const errors = {
     numberOfFeatures: 'Number of features must be a number between [0.0-1.0]',
     learningRate: 'Learning rate must be a number between [0.0-1.0]',
-    lambda: 'Lambda must be a number between [0.0-1.0]',
+    lambda: 'Lambda must be a number between [0.0-10.0]',
     dropRate: 'Drop rate must be a number between [0.0-1.0]',
-    maxDepth: 'Max depth must be a number between [0.0-1.0]',
-    alpha: 'Alpha must be a number between [0.0-1.0]',
-    minSample: 'Min sample must be a number between [0.0-1.0]',
-    minSampleLeaf: 'Min sample leaf must be a number between [0.0-1.0]',
-    minWeightFraction: 'Min weight fraction must be a number between [0.0-1.0]'
+    maxDepth: 'Max depth must be a number between [1-20]',
+    alpha: 'Alpha must be a number between [0.0-10.0]',
+    minSample: 'Min sample must be a number between [2-100]',
+    minSampleLeaf: 'Min sample leaf must be a number between [1-50]',
+    minWeightFraction: 'Min weight fraction must be a number between [0.0-0.5]'
   }
 
   const validateFields = () => {
@@ -140,9 +140,7 @@ const AutoProcess = ({
       }
       if (
         !isAutoXGBoost &&
-        (Object.values(xgboostValue).some(x => x === '') ||
-          xgboostSelection.length === 0 ||
-          Object.values(xgboostValue).some(x => !x.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
+        (Object.values(xgboostValue).some(x => x === '') || xgboostSelection.length === 0 || !validateField('xgboost'))
       ) {
         console.log(xgboostValue, xgboostSelection)
         return false
@@ -154,10 +152,8 @@ const AutoProcess = ({
         return false
       }
       if (
-        !isAutoDTR &&
-        (Object.values(dtrValue).some(x => x === '') ||
-          dtrSelection.length === 0 ||
-          Object.values(dtrValue).some(x => !x.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
+        (!isAutoDTR && (Object.values(dtrValue).some(x => x === '') || dtrSelection.length === 0)) ||
+        !validateField('dtr')
       ) {
         console.log('5')
         return false
@@ -177,6 +173,26 @@ const AutoProcess = ({
       }
     }
     return true
+  }
+
+  const validateField = type => {
+    switch (type) {
+      case 'xgboost':
+        return (
+          xgboostValue.learningRate.match(/^(0\.[0-9]+|[01](\.0)?)$/) &&
+          xgboostValue.lambda.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/) &&
+          xgboostValue.dropRate.match(/^(0\.[0-9]+|[01](\.0)?)$/) &&
+          xgboostValue.maxDepth.match(/^([1-9]|1[0-9]|20)$/) &&
+          xgboostValue.alpha.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)
+        )
+      case 'dtr':
+        return (
+          dtrValue.maxDepth.match(/^([1-9]|1[0-9]|20)$/) &&
+          dtrValue.minSample.match(/^([2-9]|[1-9][0-9]|100)$/) &&
+          dtrValue.minSampleLeaf.match(/^([1-9]|[1-4][0-9]|50)$/) &&
+          dtrValue.minWeightFraction.match(/^(0(\.[0-5]*)?|0\.5)$/)
+        )
+    }
   }
 
   const handleOnSubmit = async e => {
@@ -319,14 +335,38 @@ const AutoProcess = ({
               </Typography>
             </Grid>
             <Grid item xs={12} sx={{ display: value === '3' ? 'none' : `flex`, justifyContent: 'center' }}>
-              <FormControlLabel
-                control={<Checkbox onChange={() => setIsRDKit(!isRDKit)} checked={isRDKit} />}
-                label='RDKit'
-              />
-              <FormControlLabel
-                control={<Checkbox onChange={() => setIsMordred(!isMordred)} checked={isMordred} />}
-                label='Mordred'
-              />
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    RDKit is a software library for cheminformatics and machine learning. It is a collection of
+                    cheminformatics and machine learning algorithms written in C++ and Python.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <FormControlLabel
+                  control={<Checkbox onChange={() => setIsRDKit(!isRDKit)} checked={isRDKit} />}
+                  label='RDKit'
+                />
+              </Tooltip>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Mordred is a software library for calculating molecular descriptors in Python. It is a collection of
+                    2D and 3D descriptors. It is a collection of 2D and 3D descriptors.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='right'
+                arrow
+              >
+                <FormControlLabel
+                  control={<Checkbox onChange={() => setIsMordred(!isMordred)} checked={isMordred} />}
+                  label='Mordred'
+                />
+              </Tooltip>
             </Grid>
             <Grid item xs={12} hidden={value === '2' || value === '3'}>
               <Divider sx={{ marginBottom: 0 }} />
@@ -335,7 +375,17 @@ const AutoProcess = ({
               <Typography variant='body2' sx={{ fontWeight: 600, mb: 5, fontSize: 16 }}>
                 Binding Score
               </Typography>
-              <Tooltip title='Click Me!' placement='left' arrow>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    File that contains the binding affinity or energy values for a set of ligands docked to a reference
+                    molecule , the file should be in csv format.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
                 <Button
                   variant='contained'
                   component='label'
@@ -391,7 +441,17 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
             >
-              <Tooltip title='Click Me!' placement='left' arrow>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
+                    result in slower learning and more accurate models.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
                 <TextField
                   fullWidth
                   value={xgboostNumFeatures}
@@ -420,13 +480,25 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
-              <Tooltip title='Click Me!' placement='left' arrow>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
+                    result in slower learning and more accurate models.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
                 <TextField
                   fullWidth
                   value={xgboostValue.learningRate}
-                  error={xgboostValue.learningRate !== '' && !xgboostValue.learningRate.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  error={
+                    xgboostValue.learningRate !== '' && !xgboostValue.learningRate.match(/^(0\.[0-9]+|[01](\.0)?)$/)
+                  }
                   helperText={
-                    xgboostValue.learningRate !== '' && !xgboostValue.learningRate.match(/^(0(\.\d+)?|1(\.0+)?)$/)
+                    xgboostValue.learningRate !== '' && !xgboostValue.learningRate.match(/^(0\.[0-9]+|[01](\.0)?)$/)
                       ? errors.learningRate
                       : null
                   }
@@ -442,19 +514,30 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
-              <TextField
-                fullWidth
-                value={xgboostValue.maxDepth}
-                error={xgboostValue.maxDepth !== '' && !xgboostValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  xgboostValue.maxDepth !== '' && !xgboostValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.maxDepth
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Maximum depth of a tree, which affects model complexity and capacity to fit to the training data.
+                  </Typography>
                 }
-                label='Max Depth'
-                type='text'
-                onChange={e => setXGBoostValues(prevState => ({ ...prevState, maxDepth: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='right'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={xgboostValue.maxDepth}
+                  error={xgboostValue.maxDepth !== '' && !xgboostValue.maxDepth.match(/^([1-9]|1[0-9]|20)$/)}
+                  helperText={
+                    xgboostValue.maxDepth !== '' && !xgboostValue.maxDepth.match(/^([1-9]|1[0-9]|20)$/)
+                      ? errors.maxDepth
+                      : null
+                  }
+                  label='Max Depth'
+                  type='text'
+                  onChange={e => setXGBoostValues(prevState => ({ ...prevState, maxDepth: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -462,19 +545,31 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
-              <TextField
-                fullWidth
-                value={xgboostValue.lambda}
-                error={xgboostValue.lambda !== '' && !xgboostValue.lambda.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  xgboostValue.lambda !== '' && !xgboostValue.lambda.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.lambda
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    L2 regularization term on weights, which reduces the magnitude of the coefficients and can prevent
+                    overfitting.
+                  </Typography>
                 }
-                label='Lambda'
-                type='text'
-                onChange={e => setXGBoostValues(prevState => ({ ...prevState, lambda: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={xgboostValue.lambda}
+                  error={xgboostValue.lambda !== '' && !xgboostValue.lambda.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)}
+                  helperText={
+                    xgboostValue.lambda !== '' && !xgboostValue.lambda.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)
+                      ? errors.lambda
+                      : null
+                  }
+                  label='Lambda'
+                  type='text'
+                  onChange={e => setXGBoostValues(prevState => ({ ...prevState, lambda: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -482,17 +577,31 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
-              <TextField
-                fullWidth
-                value={xgboostValue.alpha}
-                error={xgboostValue.alpha !== '' && !xgboostValue.alpha.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  xgboostValue.alpha !== '' && !xgboostValue.alpha.match(/^(0(\.\d+)?|1(\.0+)?)$/) ? errors.alpha : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    L1 regularization term on weights, resulting in sparse models by shrinking the less important
+                    features to zero.
+                  </Typography>
                 }
-                label='Alpha'
-                type='text'
-                onChange={e => setXGBoostValues(prevState => ({ ...prevState, alpha: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='right'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={xgboostValue.alpha}
+                  error={xgboostValue.alpha !== '' && !xgboostValue.alpha.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)}
+                  helperText={
+                    xgboostValue.alpha !== '' && !xgboostValue.alpha.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)
+                      ? errors.alpha
+                      : null
+                  }
+                  label='Alpha'
+                  type='text'
+                  onChange={e => setXGBoostValues(prevState => ({ ...prevState, alpha: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -500,19 +609,30 @@ const AutoProcess = ({
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
-              <TextField
-                fullWidth
-                value={xgboostValue.dropRate}
-                error={xgboostValue.dropRate !== '' && !xgboostValue.dropRate.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  xgboostValue.dropRate !== '' && !xgboostValue.dropRate.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.dropRate
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Dropout rate, which randomly sets a fraction of the tree nodes to zero, reducing overfitting.
+                  </Typography>
                 }
-                label='Drop Rate'
-                type='text'
-                onChange={e => setXGBoostValues(prevState => ({ ...prevState, dropRate: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={xgboostValue.dropRate}
+                  error={xgboostValue.dropRate !== '' && !xgboostValue.dropRate.match(/^(0\.[0-9]+|[01](\.0)?)$/)}
+                  helperText={
+                    xgboostValue.dropRate !== '' && !xgboostValue.dropRate.match(/^(0\.[0-9]+|[01](\.0)?)$/)
+                      ? errors.dropRate
+                      : null
+                  }
+                  label='Drop Rate'
+                  type='text'
+                  onChange={e => setXGBoostValues(prevState => ({ ...prevState, dropRate: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -557,7 +677,17 @@ const AutoProcess = ({
               sm={6}
               hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}
             >
-              <Tooltip title='Click Me!' placement='left' arrow>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
+                    result in slower learning and more accurate models.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
                 <TextField
                   fullWidth
                   value={numberOfFeaturesLasso}
@@ -649,7 +779,17 @@ const AutoProcess = ({
               sm={6}
               hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
             >
-              <Tooltip title='Click Me!' placement='left' arrow>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
+                    result in slower learning and more accurate models.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
                 <TextField
                   fullWidth
                   value={dtrNumFeatures}
@@ -670,10 +810,22 @@ const AutoProcess = ({
               xs={12}
               hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isDTR}
             >
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={!isAutoDTR} />
-                Expert Mode
-              </Typography>
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
+                    result in slower learning and more accurate models.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
+                  <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={!isAutoDTR} />
+                  Manual Mode
+                </Typography>
+              </Tooltip>
             </Grid>
 
             <Grid
@@ -682,19 +834,30 @@ const AutoProcess = ({
               sm={6}
               hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
-              <TextField
-                fullWidth
-                value={dtrValue.maxDepth}
-                label='Max Depth'
-                error={dtrValue.maxDepth !== '' && !dtrValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  dtrValue.maxDepth !== '' && !dtrValue.maxDepth.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.maxDepth
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Maximum depth of a tree, which affects model complexity and capacity to fit to the training data.
+                  </Typography>
                 }
-                type='text'
-                onChange={e => setDTRValues(prevState => ({ ...prevState, maxDepth: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={dtrValue.maxDepth}
+                  label='Max Depth'
+                  error={dtrValue.maxDepth !== '' && !dtrValue.maxDepth.match(/^([1-9]|[1-9][0-9]|20)$/)}
+                  helperText={
+                    dtrValue.maxDepth !== '' && !dtrValue.maxDepth.match(/^([1-9]|[1-9][0-9]|20)$/)
+                      ? errors.maxDepth
+                      : null
+                  }
+                  type='text'
+                  onChange={e => setDTRValues(prevState => ({ ...prevState, maxDepth: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -702,19 +865,30 @@ const AutoProcess = ({
               sm={6}
               hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
-              <TextField
-                fullWidth
-                value={dtrValue.minSample}
-                label='Min Sample'
-                error={dtrValue.minSample !== '' && !dtrValue.minSample.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  dtrValue.minSample !== '' && !dtrValue.minSample.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.minSample
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Minimum number of samples required to split an internal node.
+                  </Typography>
                 }
-                type='text'
-                onChange={e => setDTRValues(prevState => ({ ...prevState, minSample: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='right'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={dtrValue.minSample}
+                  label='Min Sample'
+                  error={dtrValue.minSample !== '' && !dtrValue.minSample.match(/^([2-9]|[1-9][0-9]|100)$/)}
+                  helperText={
+                    dtrValue.minSample !== '' && !dtrValue.minSample.match(/^([2-9]|[1-9][0-9]|100)$/)
+                      ? errors.minSample
+                      : null
+                  }
+                  type='text'
+                  onChange={e => setDTRValues(prevState => ({ ...prevState, minSample: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -722,19 +896,30 @@ const AutoProcess = ({
               sm={6}
               hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
-              <TextField
-                fullWidth
-                value={dtrValue.minSampleLeaf}
-                label='Min Sample Leaf'
-                error={dtrValue.minSampleLeaf !== '' && !dtrValue.minSampleLeaf.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  dtrValue.minSampleLeaf !== '' && !dtrValue.minSampleLeaf.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.minSampleLeaf
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Minimum number of samples required to be at a leaf node.
+                  </Typography>
                 }
-                type='text'
-                onChange={e => setDTRValues(prevState => ({ ...prevState, minSampleLeaf: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={dtrValue.minSampleLeaf}
+                  label='Min Sample Leaf'
+                  error={dtrValue.minSampleLeaf !== '' && !dtrValue.minSampleLeaf.match(/^([1-9]|[1-4][0-9]|50)$/)}
+                  helperText={
+                    dtrValue.minSampleLeaf !== '' && !dtrValue.minSampleLeaf.match(/^([1-9]|[1-4][0-9]|50)$/)
+                      ? errors.minSampleLeaf
+                      : null
+                  }
+                  type='text'
+                  onChange={e => setDTRValues(prevState => ({ ...prevState, minSampleLeaf: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -742,19 +927,33 @@ const AutoProcess = ({
               sm={6}
               hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
-              <TextField
-                fullWidth
-                value={dtrValue.minWeightFraction}
-                label='Min Weight Fraction'
-                error={dtrValue.minWeightFraction !== '' && !dtrValue.minWeightFraction.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
-                helperText={
-                  dtrValue.minWeightFraction !== '' && !dtrValue.minWeightFraction.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                    ? errors.minWeightFraction
-                    : null
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    Minimum weighted fraction of the sum total of weights (of all input samples) required to be at a
+                    leaf node.
+                  </Typography>
                 }
-                type='text'
-                onChange={e => setDTRValues(prevState => ({ ...prevState, minWeightFraction: e.target.value }))}
-              />
+                TransitionComponent={Fade}
+                placement='right'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={dtrValue.minWeightFraction}
+                  label='Min Weight Fraction'
+                  error={
+                    dtrValue.minWeightFraction !== '' && !dtrValue.minWeightFraction.match(/^(0(\.[0-5]*)?|0\.5)$/)
+                  }
+                  helperText={
+                    dtrValue.minWeightFraction !== '' && !dtrValue.minWeightFraction.match(/^(0(\.[0-5]*)?|0\.5)$/)
+                      ? errors.minWeightFraction
+                      : null
+                  }
+                  type='text'
+                  onChange={e => setDTRValues(prevState => ({ ...prevState, minWeightFraction: e.target.value }))}
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
