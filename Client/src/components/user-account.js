@@ -25,14 +25,13 @@ const TabAccount = () => {
   })
 
   const body = {
-    "user_id": "Admin@gmail.com"
+    user_id: 'Admin@gmail.com'
   }
 
   useEffect(async () => {
     return await api
       .post('/get_user/', body)
       .then(res => {
-        console.log(res.data)
         setInfo({
           firstName: res.data.first_name,
           lastName: res.data.last_name,
@@ -43,7 +42,7 @@ const TabAccount = () => {
         })
       })
       .catch(err => {
-        console.log(err)
+        return Notification('Failed to get user info', 'error').apply()
       })
   }, [])
 
@@ -83,7 +82,7 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
-              <Select label='Role' value={info.isAdmin?'admin':'subscriber'} disabled>
+              <Select label='Role' value={info.isAdmin ? 'admin' : 'subscriber'} disabled>
                 <MenuItem value='admin'>Admin</MenuItem>
                 <MenuItem value='subscriber'>Subscriber</MenuItem>
               </Select>

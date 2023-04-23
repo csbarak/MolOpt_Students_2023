@@ -14,9 +14,12 @@ import {
   TablePagination,
   Tooltip
 } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
+import DeleteIcon from '@mui/icons-material/Delete'
 import api from './api'
 import { useCookies } from 'react-cookie'
 import { saveAs } from 'file-saver'
+import Notification from './notification'
 
 const statusObj = {
   running: { color: 'info' },
@@ -36,7 +39,7 @@ const TasksTable = () => {
     return await api
       .post('get_user_runs/', { email: cookies.id })
       .then(res => setTasks(res.data?.reverse()))
-      .catch(err => console.log(err))
+      .catch(err => Notification('Failed to get tasks', 'error').apply())
   }, [])
 
   const handleChangePage = (e, newpage) => {
@@ -46,6 +49,16 @@ const TasksTable = () => {
   const handleChangeRowsPerPage = e => {
     setRowPage(parseInt(e.target.value, 10))
     setPage(0)
+  }
+
+  const handleTaskDelete = async e => {
+    e.preventDefault()
+    try {
+      await api.post('delete_run/', { id: e.target.id })
+      setTasks(tasks.filter(task => task.id !== e.target.id))
+    } catch (error) {
+      Notification('Failed to delete task', 'error').apply()
+    }
   }
 
   const handleDownload = async e => {
@@ -61,7 +74,7 @@ const TasksTable = () => {
       const blob = await response.blob()
       saveAs(blob, 'result.zip')
     } catch (error) {
-      console.log(error)
+      Notification('Failed to download result', 'error').apply()
     }
   }
 
@@ -102,11 +115,20 @@ const TasksTable = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <Tooltip title='Not Implemented yet' placement='left' arrow>
-                    <a href='#' onClick={e => handleDownload(e)} id={row.id}>
-                      Download
-                    </a>
-                  </Tooltip>
+                  <a href='#' onClick={e => handleDownload(e)} id={row.id}>
+                    Download
+                  </a>
+                </TableCell>
+                <TableCell>
+                  <IconButton
+                    id={row.id}
+                    disabled={true}
+                    aria-label='delete'
+                    onClick={e => handleTaskDelete(e)}
+                    sx={{ display: row.status === 'failed' || row.status === 'finished' ? '' : 'none' }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

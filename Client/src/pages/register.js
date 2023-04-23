@@ -87,7 +87,6 @@ const RegisterPage = () => {
     return await api
       .post('users/', body)
       .then(res => {
-        console.log(res)
         if (200 <= res.status && res.status < 300) {
           return Notification('Registered successfully', 'success', () => {
             router.push('/')
@@ -95,10 +94,8 @@ const RegisterPage = () => {
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification('Failed to register', 'error').apply()
       })
-        
   }
 
   // ** Hook

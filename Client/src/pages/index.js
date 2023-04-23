@@ -97,16 +97,13 @@ const LoginPage = () => {
       .post('login/', body)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          console.log('token', res.data.token)
           setCookie('id', values.email, { path: '/', sameSite: true })
-          console.log('cookie', cookies)
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification('Failed to login', 'error').apply()
       })
   }

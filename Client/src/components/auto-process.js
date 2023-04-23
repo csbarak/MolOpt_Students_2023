@@ -163,7 +163,10 @@ const AutoProcess = ({
       if (numberOfFeaturesLasso === '') {
         return false
       }
-      if (isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) {
+      if (
+        (isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) ||
+        lassoSelection.length !== lassoValue
+      ) {
         return false
       }
     }
@@ -206,7 +209,6 @@ const AutoProcess = ({
           }
         })
         .catch(err => {
-          console.log(err)
           return Notification('Task could not started , please try again', 'error').apply()
         })
     }
@@ -225,7 +227,6 @@ const AutoProcess = ({
             }
           })
           .catch(err => {
-            console.log(err)
             return Notification('Task could not started , please try again', 'error').apply()
           })
       }
@@ -262,11 +263,30 @@ const AutoProcess = ({
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification('Task could not started , please try again', 'error').apply()
       })
   }
 
+  const isDisabled = value => {
+    return value === '1'
+      ? !(
+          (isRDKit || isMordred) &&
+          bindingSelection !== null &&
+          (isXGBoostAlgo || isDTR || isLasso) &&
+          selectedRefFile !== null &&
+          selectedLigandFile !== null &&
+          validateFields() &&
+          multipleAlgoSelection.length > 0
+        )
+      : value === '2'
+      ? !((isRDKit || isMordred) && selectedAlignmentFile !== null)
+      : !(
+          (isXGBoostAlgo || isDTR || isLasso) &&
+          selectedDatasetFile !== null &&
+          validateFields() &&
+          multipleAlgoSelection.length > 0
+        )
+  }
   return (
     <Card sx={{ mt: 5 }}>
       <Typography
@@ -717,6 +737,7 @@ const AutoProcess = ({
             sx={{ mr: 2 }}
             variant='contained'
             onClick={e => handleOnSubmit(e)}
+            color={isDisabled ? 'success' : 'primary'}
             disabled={
               value === '1'
                 ? !(

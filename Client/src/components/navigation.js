@@ -13,6 +13,7 @@ import {
 import { useState, useEffect } from 'react'
 import api from './api'
 import { useCookies } from 'react-cookie'
+import Notification from './notification'
 
 const navigation = () => {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -26,7 +27,7 @@ const navigation = () => {
           setIsAdmin(res.data.is_admin)
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => Notification('Could not get permission , please try again', 'error').apply())
   }, [])
 
   if (isAdmin) {

@@ -29,36 +29,29 @@ const Row = props => {
   const [selected, setSelected] = useState('User')
 
   const handleChange = async event => {
-    if (selected === 'User')
-    {
+    if (selected === 'User') {
       return await api
-      .post('/remove_admin/', { "user_id": row.id })
-      .then(res => {
-        if (200 <= res.status && res.status < 300) {
-          return Notification('Role changed to USER successfully', 'success').apply()
-        }
-      })
-      .catch(err => {
-        console.log(err)
-        return Notification('Failed to change role to USER', 'error').apply()
-      })
-    }
-    else if (selected === 'Admin')
-    {
+        .post('/remove_admin/', { user_id: row.id })
+        .then(res => {
+          if (200 <= res.status && res.status < 300) {
+            return Notification('Role changed to USER successfully', 'success').apply()
+          }
+        })
+        .catch(err => {
+          return Notification('Failed to change role to USER', 'error').apply()
+        })
+    } else if (selected === 'Admin') {
       return await api
-      .post('/create_admin/', { "user_id": row.id })
-      .then(res => {
-        if (200 <= res.status && res.status < 300) {
-          return Notification('Role changed to ADMIN successfully', 'success').apply()
-        }
-      })
-      .catch(err => {
-        console.log(err)
-        return Notification('Failed to change role to ADMIN', 'error').apply()
-      })
-    }
-    else
-    {
+        .post('/create_admin/', { user_id: row.id })
+        .then(res => {
+          if (200 <= res.status && res.status < 300) {
+            return Notification('Role changed to ADMIN successfully', 'success').apply()
+          }
+        })
+        .catch(err => {
+          return Notification('Failed to change role to ADMIN', 'error').apply()
+        })
+    } else {
       // Do nothing
     }
   }
@@ -66,14 +59,13 @@ const Row = props => {
   const handleDelete = async event => {
     const emailToDelete = row.email
     return await api
-      .post('delete-user/', { "user_id": emailToDelete })
+      .post('delete-user/', { user_id: emailToDelete })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           return Notification(`${emailToDelete} was deleted successfully`, 'success').apply()
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification(`Failed to delete the user ${emailToDelete}`, 'error').apply()
       })
   }
@@ -86,8 +78,10 @@ const Row = props => {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component='th' scope='row'>{row.id}</TableCell>
-        <TableCell align='right'>{row.first_name + " " + row.last_name}</TableCell>
+        <TableCell component='th' scope='row'>
+          {row.id}
+        </TableCell>
+        <TableCell align='right'>{row.first_name + ' ' + row.last_name}</TableCell>
         <TableCell align='right'>{row.email}</TableCell>
         <TableCell align='right'>{row.affiliation}</TableCell>
         <TableCell align='right'>{row.position}</TableCell>
@@ -103,7 +97,7 @@ const Row = props => {
                 </TableHead>
                 <br />
                 <TableBody align='center' sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
-                  <Button variant='outlined' color="error" onClick={handleDelete}>
+                  <Button variant='outlined' color='error' onClick={handleDelete}>
                     Delete user
                   </Button>
                   <Select
@@ -148,7 +142,7 @@ const AdminUsers = () => {
           setUsers(res.data)
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => Notification('Failed to fetch users', 'error').apply())
   }, [])
 
   const handleChangePage = (event, newpage) => {
@@ -175,7 +169,6 @@ const AdminUsers = () => {
         </TableHead>
         <TableBody>
           {users?.slice(page * rowPage, page * rowPage + rowPage).map(user => {
-            // console.log(user)
             return <Row key={user.id} row={user} />
           })}
         </TableBody>

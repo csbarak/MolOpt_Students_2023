@@ -29,7 +29,6 @@ const FileUpload = () => {
   const handleUploadRef = e => {
     e.preventDefault()
     if (!validate(e.target.files[0], 'alignment')) {
-      //**need to add error for uploading suffix incorrect
       return
     }
     setSelectedRefFile(e.target.files[0])
@@ -72,7 +71,6 @@ const FileUpload = () => {
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification('Task could not started , please try again', 'error').apply()
       })
   }
@@ -141,8 +139,9 @@ const FileUpload = () => {
               <Button
                 variant='contained'
                 disabled={!selectedRefFile || !selectedLigandFile}
+                color={selectedRefFile && selectedLigandFile ? 'success' : 'secondary'}
                 onClick={e => handleOnSubmit(e)}
-                sx={{ display: `${autoController === true ? 'none' : ''}` }}
+                sx={{ display: `${autoController === true ? 'none' : ''}`, ml: 2 }}
               >
                 Submit
               </Button>

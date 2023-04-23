@@ -29,26 +29,24 @@ const ContactForm = () => {
 
   const handleOnClick = async () => {
     const body = {
-      "subject": selection,
-      "user_id": "Admin@gmail.com",   // TODO: Get user_id/email from cookies
-      "message": message
+      subject: selection,
+      user_id: 'Admin@gmail.com', // TODO: Get user_id/email from cookies
+      message: message
     }
 
     return await api
       .post('/contact-admin/', body)
       .then(res => {
-        if (200 <= res.status && res.status < 300) 
+        if (200 <= res.status && res.status < 300)
           return Notification('Message send successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()
       })
       .catch(err => {
-        console.log(err)
         return Notification('Failed to send message', 'error').apply()
       })
   }
 
-  
   return (
     <Card>
       <CardHeader title='Send Message' titleTypographyProps={{ variant: 'h6' }} />

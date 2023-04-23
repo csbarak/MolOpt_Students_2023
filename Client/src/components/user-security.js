@@ -61,11 +61,10 @@ const TabSecurity = () => {
     return await api
       .post('change-password/', { password: values.newPassword })
       .then(res => {
-        if (200 <= res.status && res.status < 300) 
+        if (200 <= res.status && res.status < 300)
           return Notification('Password changed successfully', 'success').apply()
       })
       .catch(err => {
-        console.log(err)
         return Notification('Failed to change password', 'error').apply()
       })
   }

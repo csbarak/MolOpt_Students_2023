@@ -20,6 +20,7 @@ import AccountOutline from 'mdi-material-ui/AccountOutline'
 import api from './api'
 import { useEffect } from 'react'
 import { useCookies } from 'react-cookie'
+import Notification from './notification'
 
 const UserDropdown = () => {
   // ** States
@@ -57,7 +58,7 @@ const UserDropdown = () => {
         }
       })
       .catch(err => {
-        console.log(err)
+        Notification('Could not logout, please try again', 'error').apply()
       })
   }
 

@@ -19,7 +19,6 @@ const ForgotPassword = ({ value, setValue }) => {
         }
       })
       .catch(err => {
-        console.log(err)
         return Notification('Password reset failed , please check email is exists and valid.', 'error').apply()
       })
   }
