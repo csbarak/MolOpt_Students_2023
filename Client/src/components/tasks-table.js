@@ -12,7 +12,8 @@ import {
   Typography,
   TableContainer,
   TablePagination,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -114,8 +115,14 @@ const TasksTable = () => {
                     }}
                   />
                 </TableCell>
-                <TableCell>
-                  <a href='#' onClick={e => handleDownload(e)} id={row.id}>
+                <TableCell sx={{ m: 0 }}>
+                  <a
+                    href='#'
+                    className={row.status !== 'finished' ? 'disabled-link' : ''}
+                    onClick={e => handleDownload(e)}
+                    id={row.id}
+                    sx={{ m: 0 }}
+                  >
                     Download
                   </a>
                 </TableCell>

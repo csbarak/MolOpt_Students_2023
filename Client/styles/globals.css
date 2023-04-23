@@ -34,3 +34,8 @@ code[class*='language-'] {
   color: #999;
   text-transform: lowercase;
 }
+
+.disabled-link {
+  pointer-events: none;
+  color: #999;
+}

@@ -50,15 +50,15 @@ const AutoProcess = ({
   const [isAutoDTR, setIsAutoDTR] = useState(false)
   const [isAutoLasso, setIsAutoLasso] = useState(false)
   const [xgboostValue, setXGBoostValues] = useState({
-    numberOfFeatures: '',
     learningRate: '',
     lambda: '',
     dropRate: '',
     maxDepth: '',
     alpha: ''
   })
+  const [xgboostNumFeatures, setXGBoostNumFeatures] = useState('')
+  const [dtrNumFeatures, setDTRNumFeatures] = useState('')
   const [dtrValue, setDTRValues] = useState({
-    numberOfFeatures: '',
     maxDepth: '',
     minSample: '',
     minSampleLeaf: '',
@@ -134,39 +134,45 @@ const AutoProcess = ({
 
   const validateFields = () => {
     if (isXGBoostAlgo) {
-      if (xgboostValue.numberOfFeatures === '') {
+      if (isAutoXGBoost && xgboostNumFeatures === '') {
+        console.log('2')
         return false
       }
       if (
-        isAutoXGBoost &&
+        !isAutoXGBoost &&
         (Object.values(xgboostValue).some(x => x === '') ||
           xgboostSelection.length === 0 ||
           Object.values(xgboostValue).some(x => !x.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
       ) {
+        console.log(xgboostValue, xgboostSelection)
         return false
       }
     }
     if (isDTR) {
-      if (dtrValue.numberOfFeatures === '') {
+      if (isAutoDTR && dtrNumFeatures === '') {
+        console.log('4')
         return false
       }
       if (
-        isAutoDTR &&
+        !isAutoDTR &&
         (Object.values(dtrValue).some(x => x === '') ||
           dtrSelection.length === 0 ||
           Object.values(dtrValue).some(x => !x.match(/^(0(\.\d+)?|1(\.0+)?)$/)))
       ) {
+        console.log('5')
         return false
       }
     }
     if (isLasso) {
-      if (numberOfFeaturesLasso === '') {
+      if (isAutoLasso && numberOfFeaturesLasso === '') {
+        console.log('6')
         return false
       }
       if (
-        (isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) ||
+        (!isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) ||
         lassoSelection.length !== lassoValue
       ) {
+        console.log('7')
         return false
       }
     }
@@ -181,22 +187,22 @@ const AutoProcess = ({
       formData.append('ligand', selectedLigandFile)
       formData.append('binding', bindingSelection)
       formData.append('xgboost', {
-        numberOfFeatures: xgboostValue.numberOfFeatures,
+        numberOfFeatures: xgboostNumFeatures,
         isXGBoost: isXGBoostAlgo,
-        isAuto: !isAutoXGBoost,
+        isAuto: isAutoXGBoost,
         xgboostValue: xgboostValue,
         features: xgboostSelection
       })
       formData.append('dtr', {
         isDTR: isDTR,
-        isAuto: !isAutoDTR,
+        isAuto: isAutoDTR,
         dtrValue: dtrValue,
         features: dtrSelection,
-        numberOfFeatures: dtrValue.numberOfFeatures
+        numberOfFeatures: dtrNumFeatures
       })
       formData.append('lasso', {
         isLasso: isLasso,
-        isAuto: !isAutoLasso,
+        isAuto: isAutoLasso,
         lassoValue: lassoValue,
         features: lassoSelection,
         numberOfFeatures: numberOfFeaturesLasso
@@ -235,22 +241,22 @@ const AutoProcess = ({
     formData.append('csv', selectedDatasetFile)
     formData.append('email', cookies.id)
     formData.append('xgboost', {
-      numberOfFeatures: xgboostValue.numberOfFeatures,
+      numberOfFeatures: xgboostNumFeatures,
       isXGBoost: isXGBoostAlgo,
-      isAuto: !isAutoXGBoost,
+      isAuto: isAutoXGBoost,
       xgboostValue: xgboostValue,
       features: xgboostSelection
     })
     formData.append('dtr', {
       isDTR: isDTR,
-      isAuto: !isAutoDTR,
+      isAuto: isAutoDTR,
       dtrValue: dtrValue,
       features: dtrSelection,
-      numberOfFeatures: dtrValue.numberOfFeatures
+      numberOfFeatures: dtrNumFeatures
     })
     formData.append('lasso', {
       isLasso: isLasso,
-      isAuto: !isAutoLasso,
+      isAuto: isAutoLasso,
       lassoValue: lassoValue,
       features: lassoSelection,
       numberOfFeatures: numberOfFeaturesLasso
@@ -372,32 +378,11 @@ const AutoProcess = ({
                 XGBoost
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost')}>
-              <Tooltip title='Click Me!' placement='left' arrow>
-                <TextField
-                  fullWidth
-                  value={xgboostValue.numberOfFeatures}
-                  error={
-                    xgboostValue.numberOfFeatures !== '' &&
-                    !xgboostValue.numberOfFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                  }
-                  helperText={
-                    xgboostValue.numberOfFeatures !== '' &&
-                    !xgboostValue.numberOfFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                      ? errors.numberOfFeatures
-                      : null
-                  }
-                  label='Number of Features'
-                  type='text'
-                  onChange={e => setXGBoostValues(prevState => ({ ...prevState, numberOfFeatures: e.target.value }))}
-                />
-              </Tooltip>
-            </Grid>
 
             <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost') || !isXGBoostAlgo}>
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoXGBoost(!isAutoXGBoost)} checked={isAutoXGBoost} />
-                Expert Mode
+                Auto Mode
               </Typography>
             </Grid>
             <Grid
@@ -405,6 +390,35 @@ const AutoProcess = ({
               xs={12}
               sm={6}
               hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+            >
+              <Tooltip title='Click Me!' placement='left' arrow>
+                <TextField
+                  fullWidth
+                  value={xgboostNumFeatures}
+                  error={xgboostNumFeatures !== '' && !xgboostNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  helperText={
+                    xgboostNumFeatures !== '' && !xgboostNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
+                      ? errors.numberOfFeatures
+                      : null
+                  }
+                  label='Number of Features'
+                  type='text'
+                  onChange={e => setXGBoostNumFeatures(e.target.value)}
+                />
+              </Tooltip>
+            </Grid>
+
+            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost') || !isXGBoostAlgo}>
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
+                <Switch onChange={() => setIsAutoXGBoost(!isAutoXGBoost)} checked={!isAutoXGBoost} />
+                Manual Mode
+              </Typography>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <Tooltip title='Click Me!' placement='left' arrow>
                 <TextField
@@ -426,7 +440,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <TextField
                 fullWidth
@@ -446,7 +460,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <TextField
                 fullWidth
@@ -466,7 +480,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <TextField
                 fullWidth
@@ -484,7 +498,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <TextField
                 fullWidth
@@ -504,7 +518,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
+              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
             >
               <Autocomplete
                 multiple={true}
@@ -526,7 +540,23 @@ const AutoProcess = ({
                 Lasso Regression
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression')}>
+            <Grid
+              item
+              xs={12}
+              hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression') || !isLasso}
+            >
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
+                <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={isAutoLasso} />
+                Auto Mode
+              </Typography>
+            </Grid>
+
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}
+            >
               <Tooltip title='Click Me!' placement='left' arrow>
                 <TextField
                   fullWidth
@@ -549,8 +579,8 @@ const AutoProcess = ({
               hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression') || !isLasso}
             >
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={isAutoLasso} />
-                Expert Mode
+                <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={!isAutoLasso} />
+                Manual Mode
               </Typography>
             </Grid>
 
@@ -558,7 +588,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}
+              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}
             >
               <FormControl fullWidth>
                 <InputLabel id='form-layouts-separator-select-label'>{`Train/Predict with top features`}</InputLabel>
@@ -582,7 +612,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}
+              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}
             >
               <Autocomplete
                 multiple={true}
@@ -603,20 +633,35 @@ const AutoProcess = ({
                 Decision Tree Regressor
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor')}>
+            <Grid
+              item
+              xs={12}
+              hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isDTR}
+            >
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
+                <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={isAutoDTR} />
+                Auto Mode
+              </Typography>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+            >
               <Tooltip title='Click Me!' placement='left' arrow>
                 <TextField
                   fullWidth
-                  value={dtrValue.numberOfFeatures}
-                  error={dtrValue.numberOfFeatures !== '' && !dtrValue.numberOfFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  value={dtrNumFeatures}
+                  error={dtrNumFeatures !== '' && !dtrNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
                   helperText={
-                    dtrValue.numberOfFeatures !== '' && !dtrValue.numberOfFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
+                    dtrNumFeatures !== '' && !dtrNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
                       ? errors.numberOfFeatures
                       : null
                   }
                   label='Number Of Features'
                   type='text'
-                  onChange={e => setDTRValues(prevState => ({ ...prevState, numberOfFeatures: e.target.value }))}
+                  onChange={e => setDTRNumFeatures(e.target.value)}
                 />
               </Tooltip>
             </Grid>
@@ -626,7 +671,7 @@ const AutoProcess = ({
               hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isDTR}
             >
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={isAutoDTR} />
+                <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={!isAutoDTR} />
                 Expert Mode
               </Typography>
             </Grid>
@@ -635,7 +680,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
               <TextField
                 fullWidth
@@ -655,7 +700,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
               <TextField
                 fullWidth
@@ -675,7 +720,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
               <TextField
                 fullWidth
@@ -695,7 +740,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
               <TextField
                 fullWidth
@@ -715,7 +760,7 @@ const AutoProcess = ({
               item
               xs={12}
               sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
+              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
             >
               <Autocomplete
                 multiple={true}

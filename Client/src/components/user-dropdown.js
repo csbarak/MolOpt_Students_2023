@@ -32,11 +32,14 @@ const UserDropdown = () => {
   const router = useRouter()
 
   useEffect(async () => {
-    return api.post('check_permissions/', { user_id: cookies.id }).then(res => {
-      if (res.status >= 200 && res.status < 300) {
-        setIsAdmin(res.data.is_admin)
-      }
-    })
+    return api
+      .post('check_permissions/', { user_id: cookies.id })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          setIsAdmin(res.data.is_admin)
+        }
+      })
+      .catch(err => Notification('Failed to check permissions', 'error').apply())
   }, [])
 
   const handleDropdownOpen = event => {
