@@ -121,7 +121,7 @@ const AutoProcess = ({
   }
 
   const errors = {
-    numberOfFeatures: 'Number of features must be a number between [0.0-1.0]',
+    numberOfFeatures: 'Number of features must be a number between [0-20]',
     learningRate: 'Learning rate must be a number between [0.0-1.0]',
     lambda: 'Lambda must be a number between [0.0-10.0]',
     dropRate: 'Drop rate must be a number between [0.0-1.0]',
@@ -134,7 +134,7 @@ const AutoProcess = ({
 
   const validateFields = () => {
     if (isXGBoostAlgo) {
-      if (isAutoXGBoost && xgboostNumFeatures === '') {
+      if (isAutoXGBoost && (xgboostNumFeatures === '' || !xgboostNumFeatures.match('^(1?[0-9]|20)$'))) {
         console.log('2')
         return false
       }
@@ -455,9 +455,9 @@ const AutoProcess = ({
                 <TextField
                   fullWidth
                   value={xgboostNumFeatures}
-                  error={xgboostNumFeatures !== '' && !xgboostNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  error={xgboostNumFeatures !== '' && !xgboostNumFeatures.match('^(1?[0-9]|20)$')}
                   helperText={
-                    xgboostNumFeatures !== '' && !xgboostNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
+                    xgboostNumFeatures !== '' && !xgboostNumFeatures.match('^(1?[0-9]|20)$')
                       ? errors.numberOfFeatures
                       : null
                   }
@@ -691,9 +691,9 @@ const AutoProcess = ({
                 <TextField
                   fullWidth
                   value={numberOfFeaturesLasso}
-                  error={numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  error={numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('^(1?[0-9]|20)$')}
                   helperText={
-                    numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match(/^(0(\.\d+)?|1(\.0+)?)$/)
+                    numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('^(1?[0-9]|20)$')
                       ? errors.learningRate
                       : null
                   }
@@ -793,11 +793,9 @@ const AutoProcess = ({
                 <TextField
                   fullWidth
                   value={dtrNumFeatures}
-                  error={dtrNumFeatures !== '' && !dtrNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)}
+                  error={dtrNumFeatures !== '' && !dtrNumFeatures.match('^(1?[0-9]|20)$')}
                   helperText={
-                    dtrNumFeatures !== '' && !dtrNumFeatures.match(/^(0(\.\d+)?|1(\.0+)?)$/)
-                      ? errors.numberOfFeatures
-                      : null
+                    dtrNumFeatures !== '' && !dtrNumFeatures.match('^(1?[0-9]|20)$') ? errors.numberOfFeatures : null
                   }
                   label='Number Of Features'
                   type='text'
