@@ -21,7 +21,7 @@ const FileUpload = () => {
   const [selectedAlignmentFile, setSelectedAlignmentFile] = useState(null)
   const [selectedDatasetFile, setSelectedDatasetFile] = useState(null)
   const [autoController, setAutoController] = useState(false)
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -63,7 +63,7 @@ const FileUpload = () => {
     const formData = new FormData()
     formData.append('ref', selectedRefFile)
     formData.append('ligand', selectedLigandFile)
-    formData.append('email', cookies.id)
+    formData.append('email', cookies.email)
     return await api
       .post('run_alignment/', formData)
       .then(res => {

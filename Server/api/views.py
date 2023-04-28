@@ -71,20 +71,21 @@ class UserLogoutApiView(APIView):
 
 
 class getAllUsers(APIView):
-    permission_classes = ([IsAuthenticated])
+    #permission_classes = ([IsAuthenticated])
 
-    def get(self, request):
+    def post(self, request):
         try:
-            if not request.user.is_staff == True:
-                return Response(status=status.HTTP_400_BAD_REQUEST,
-                                data={"message": 'User {request.user.email} is not staff'})
+            email = request.data['email']
+            user = User.objects.get(email=email)
+            if not user.is_staff == True:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User {request.user.email} is not staff'})
 
             users = User.objects.all().values('email', 'id', 'first_name', 'last_name',
                                               'position', 'affiliation', 'is_staff')
             return Response(status=status.HTTP_200_OK, data={users})
 
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[getAllUsers] ' + str(e)})
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[getAllUsers]'+str(e)})
 
 
 class getUser(APIView):
@@ -92,8 +93,8 @@ class getUser(APIView):
 
     def post(self, request):
         try:
-            user_id = request.data['user_id']
-            user = User.objects.get(email=user_id)
+            email = request.data['email']
+            user = User.objects.get(email=email)
             # if not request.user.email == user.email and not request.user.is_staff:
             #     return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User can see other users profile'})
 
@@ -111,8 +112,8 @@ class CheckPermissions(APIView):
 
     def post(self, request):
         try:
-            pk = request.data['user_id']
-            user = User.objects.get(email=pk)
+            email = request.data['email']
+            user = User.objects.get(email=email)
             return Response(status=status.HTTP_200_OK, data={"is_admin": user.is_staff})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,9 +125,9 @@ class CreateSystemAdminApiView(APIView):
 
     def post(self, request):
         try:
-            pk = request.data['user_id']
-            if pk is not None:
-                user = User.objects.get(id=pk)
+            email = request.data['email']
+            if email is not None:
+                user = User.objects.get(email=email)
                 if user is not None:
                     if not user.is_staff:
                         user.is_staff = True
@@ -135,12 +136,12 @@ class CreateSystemAdminApiView(APIView):
                                         data={'message': f'{user.first_name} {user.last_name} is now an admin '})
                     else:
                         return Response(status=status.HTTP_400_BAD_REQUEST,
-                                        data={'message': f'User w/ email: {user.email} is already an admin'})
+                                        data={'message': f'User w/ email: {email} is already an admin'})
                 else:
                     return Response(status=status.HTTP_400_BAD_REQUEST,
-                                    data={'message': f'User w/ email: {user.email} does not exists'})
+                                    data={'message': f'User w/ email: {email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {pk}'})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with email: {email}'})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             data={"message": '[CreateSystemAdminApiView] ' + str(e)})
@@ -151,9 +152,9 @@ class RemoveSystemAdminApiView(APIView):
 
     def post(self, request):
         try:
-            pk = request.data['user_id']
-            if pk is not None:
-                user = User.objects.get(id=pk)
+            email = request.data['email']
+            if email is not None:
+                user = User.objects.get(email=email)
                 if user is not None:
                     if user.is_staff:
                         user.is_staff = False
@@ -162,12 +163,12 @@ class RemoveSystemAdminApiView(APIView):
                                         data={'message': f'{user.first_name} {user.last_name} is now a regular user '})
                     else:
                         return Response(status=status.HTTP_400_BAD_REQUEST,
-                                        data={'message': f'User w/ email: {user.email} is already a regular user'})
+                                        data={'message': f'User w/ email: {email} is already a regular user'})
                 else:
                     return Response(status=status.HTTP_400_BAD_REQUEST,
-                                    data={'message': f'User w/ email: {user.email} does not exists'})
+                                    data={'message': f'User w/ email: {email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {pk}'})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {email}'})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             data={"message": '[CreateSystemAdminApiView] ' + str(e)})
@@ -179,13 +180,13 @@ class DeleteUserFromSystem(APIView):
     def post(self, request):
         try:
             # if IsAdminUser and request.user.is_staff:     # TODO: Need to get the user requesting to delete..
-            pk = request.data['user_id']
-            if pk is not None:
-                user = User.objects.get(pk=pk)
+            email = request.data['email']
+            if email is not None:
+                user = User.objects.get(email=email)
                 print(user)
                 user.delete()
                 return Response(status=status.HTTP_200_OK,
-                                data={'message': f'The user with the id #{pk} has been deleted'})
+                                data={'message': f'The user with the id #{email} has been deleted'})
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
             # else:
@@ -201,9 +202,9 @@ class ContactAdmin(APIView):
     def post(self, request):
         try:
             subject = request.data['subject']
-            pk = request.data['user_id']
+            email = request.data['email']
             message = request.data['message']
-            user = User.objects.get(email=pk)
+            user = User.objects.get(email=email)
             user_email = user.email
             body = f"Contact Admin Message From User: {user_email}\nMessage:\n{message}"
             to_email = ADMIN_EMAILS[subject]

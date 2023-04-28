@@ -25,7 +25,7 @@ import Notification from './notification'
 const UserDropdown = () => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
   const [isAdmin, setIsAdmin] = useState(false)
 
   // ** Hooks
@@ -33,7 +33,7 @@ const UserDropdown = () => {
 
   useEffect(async () => {
     return api
-      .post('check_permissions/', { user_id: cookies.id })
+      .post('check_permissions/', { email: cookies.email })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)
@@ -56,7 +56,10 @@ const UserDropdown = () => {
     api
       .post('logout/', {}, {})
       .then(res => {
-        if (res) {
+        if (200 <= res.status && res.status < 300) {
+          removeCookie('email')
+          removeCookie('csrftoken')
+          removeCookie('token')
           router.push('/')
         }
       })
@@ -87,7 +90,7 @@ const UserDropdown = () => {
         sx={{ ml: 2, cursor: 'pointer' }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Avatar alt={cookies.id} onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} />
+        <Avatar alt={cookies.email} onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -100,10 +103,10 @@ const UserDropdown = () => {
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Badge overlap='circular' anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-              <Avatar alt={cookies.id} sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt={cookies.email} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{cookies.id}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{cookies.email}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 {isAdmin ? 'Admin' : 'User'}
               </Typography>

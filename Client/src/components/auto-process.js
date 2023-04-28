@@ -72,7 +72,7 @@ const AutoProcess = ({
   const [lassoSelection, setLassoSelection] = useState([])
   const [bindingSelection, setBindingSelection] = useState(null)
   const [multipleAlgoSelection, setMultipleAlgoSelection] = useState([])
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   useEffect(() => {
     return clearFields(
@@ -238,7 +238,7 @@ const AutoProcess = ({
       if (isRDKit || isMordred) {
         const formData = new FormData()
         formData.append('mol', selectedAlignmentFile)
-        formData.append('email', cookies.id)
+        formData.append('email', cookies.email)
         formData.append('RDKit', isRDKit)
         formData.append('Mordred', isMordred)
         return await api
@@ -255,7 +255,7 @@ const AutoProcess = ({
     }
     const formData = new FormData()
     formData.append('csv', selectedDatasetFile)
-    formData.append('email', cookies.id)
+    formData.append('email', cookies.email)
     formData.append('xgboost', {
       numberOfFeatures: xgboostNumFeatures,
       isXGBoost: isXGBoostAlgo,

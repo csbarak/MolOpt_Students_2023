@@ -21,6 +21,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import axios from 'axios'
 import api from './api'
 import Notification from './notification'
+import { useCookies } from 'react-cookie'
 
 const Row = props => {
   const { row } = props
@@ -31,7 +32,7 @@ const Row = props => {
   const handleChange = async event => {
     if (selected === 'User') {
       return await api
-        .post('/remove_admin/', { user_id: row.id })
+        .post('/remove_admin/', { email: row.id })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
             return Notification('Role changed to USER successfully', 'success').apply()
@@ -42,7 +43,7 @@ const Row = props => {
         })
     } else if (selected === 'Admin') {
       return await api
-        .post('/create_admin/', { user_id: row.id })
+        .post('/create_admin/', { email: row.id })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
             return Notification('Role changed to ADMIN successfully', 'success').apply()
@@ -56,17 +57,18 @@ const Row = props => {
     }
   }
 
-  const handleDelete = async event => {
-    const emailToDelete = row.email
+  const handleDelete = async e => {
     return await api
-      .post('delete-user/', { user_id: emailToDelete })
+      .post('delete_user/', { email: e.target.id })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          return Notification(`${emailToDelete} was deleted successfully`, 'success').apply()
+          console.log(users) //TODO: fix this
+          setUsers(users.filter(user => user.id !== e.target.id))
+          return Notification(`${e.target.id} was deleted successfully`, 'success').apply()
         }
       })
       .catch(err => {
-        return Notification(`Failed to delete the user ${emailToDelete}`, 'error').apply()
+        return Notification(`Failed to delete the user ${e.target.id}`, 'error').apply()
       })
   }
 
@@ -85,7 +87,7 @@ const Row = props => {
         <TableCell align='right'>{row.email}</TableCell>
         <TableCell align='right'>{row.affiliation}</TableCell>
         <TableCell align='right'>{row.position}</TableCell>
-        {/* <TableCell align='right'>{row.isAdmin}</TableCell> */}
+        <TableCell align='right'>{row.is_staff ? 'Admin' : 'User'}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -97,12 +99,11 @@ const Row = props => {
                 </TableHead>
                 <br />
                 <TableBody align='center' sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
-                  <Button variant='outlined' color='error' onClick={handleDelete}>
+                  <Button variant='outlined' id={row.email} color='error' onClick={e => handleDelete(e)}>
                     Delete user
                   </Button>
                   <Select
                     variant='outlined'
-                    label={`Train/Predict with top features`}
                     id='form-layouts-separator-select'
                     labelId='form-layouts-separator-select-label'
                     defaultValue={selected}
@@ -115,6 +116,7 @@ const Row = props => {
                       </MenuItem>
                     ))}
                   </Select>
+
                   <Button variant='outlined' onClick={handleChange}>
                     Save Changes
                   </Button>
@@ -133,13 +135,14 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([])
   const [page, setPage] = useState(0)
   const [rowPage, setRowPage] = useState(5)
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   useEffect(async () => {
     return await api
-      .get('/users/')
+      .post('get_all_users/', { email: cookies.email })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
-          setUsers(res.data)
+          setUsers(res.data[0])
         }
       })
       .catch(err => Notification('Failed to fetch users', 'error').apply())
@@ -164,7 +167,7 @@ const AdminUsers = () => {
             <TableCell align='right'>Email</TableCell>
             <TableCell align='right'>Affiliation</TableCell>
             <TableCell align='right'>Position</TableCell>
-            {/* <TableCell align='right'>Admin/User</TableCell>             */}
+            <TableCell align='right'>Admin/User</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

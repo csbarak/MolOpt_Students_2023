@@ -34,11 +34,11 @@ const TasksTable = () => {
   const [page, setPage] = useState(0)
   const [rowPage, setRowPage] = useState(5)
   const [tasks, setTasks] = useState([])
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   useEffect(async () => {
     return await api
-      .post('get_user_runs/', { email: cookies.id })
+      .post('get_user_runs/', { email: cookies.email })
       .then(res => setTasks(res.data?.reverse()))
       .catch(err => Notification('Failed to get tasks', 'error').apply())
   }, [])

@@ -13,6 +13,7 @@ import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
 import { useEffect } from 'react'
 import api from './api'
+import { useCookies } from 'react-cookie'
 
 const TabAccount = () => {
   const [info, setInfo] = useState({
@@ -23,9 +24,10 @@ const TabAccount = () => {
     position: '',
     isAdmin: false
   })
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   const body = {
-    user_id: 'Admin@gmail.com'
+    email: cookies.email
   }
 
   useEffect(async () => {
@@ -82,9 +84,9 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
-              <Select label='Role' value={info.isAdmin ? 'admin' : 'subscriber'} disabled>
-                <MenuItem value='admin'>Admin</MenuItem>
-                <MenuItem value='subscriber'>Subscriber</MenuItem>
+              <Select label='Role' value={info.isAdmin ? 'Admin' : 'User'} disabled>
+                <MenuItem value='Admin'>Admin</MenuItem>
+                <MenuItem value='User'>User</MenuItem>
               </Select>
             </FormControl>
           </Grid>

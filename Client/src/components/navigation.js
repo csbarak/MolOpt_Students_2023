@@ -17,11 +17,11 @@ import Notification from './notification'
 
 const navigation = () => {
   const [isAdmin, setIsAdmin] = useState(false)
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   useEffect(async () => {
     return await api
-      .post('/check_permissions/', { user_id: cookies.id })
+      .post('/check_permissions/', { email: cookies.email })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)

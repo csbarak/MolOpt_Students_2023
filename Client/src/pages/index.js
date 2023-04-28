@@ -68,7 +68,7 @@ const LoginPage = () => {
     showPassword: false
   })
   const [showForgot, setShowForgot] = useState(false)
-  const [cookies, setCookie, removeCookie] = useCookies(['id', 'token'])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   // ** Hook
   const theme = useTheme()
@@ -97,7 +97,8 @@ const LoginPage = () => {
       .post('login/', body)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          setCookie('id', values.email, { path: '/', sameSite: true })
+          setCookie('email', values.email, { path: '/', sameSite: true })
+          setCookie('token', res.data.token, { path: '/', sameSite: true })
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()

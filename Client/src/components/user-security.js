@@ -124,7 +124,7 @@ const TabSecurity = () => {
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleOnClick}>
-              Save Changes
+              Save Changes //TODO: Add loading state
             </Button>
           </Grid>
         </Grid>

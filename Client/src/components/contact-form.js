@@ -19,9 +19,11 @@ import MessageOutline from 'mdi-material-ui/MessageOutline'
 import api from './api'
 import Notification from './notification'
 import { useRouter } from 'next/router'
+import { useCookies } from 'react-cookie'
 
 const ContactForm = () => {
   const router = useRouter()
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   const [selection, setSelection] = useState('')
   const [message, setMessage] = useState('')
@@ -30,7 +32,7 @@ const ContactForm = () => {
   const handleOnClick = async () => {
     const body = {
       subject: selection,
-      user_id: 'Admin@gmail.com', // TODO: Get user_id/email from cookies
+      email: cookies.email,
       message: message
     }
 
