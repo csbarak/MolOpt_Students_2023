@@ -58,7 +58,7 @@ class UserLoginApiView(ObtainAuthToken):
 
 
 class UserLogoutApiView(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -71,13 +71,11 @@ class UserLogoutApiView(APIView):
 
 
 class getAllUsers(APIView):
-    #permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
-            email = request.data['email']
-            user = User.objects.get(email=email)
-            if not user.is_staff == True:
+            if not request.user.is_staff == True:
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User {request.user.email} is not staff'})
 
             users = User.objects.all().values('email', 'id', 'first_name', 'last_name',
@@ -85,11 +83,11 @@ class getAllUsers(APIView):
             return Response(status=status.HTTP_200_OK, data={users})
 
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[getAllUsers]'+str(e)})
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message": '[getAllUsers]' + str(e)})
 
 
 class getUser(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -108,7 +106,7 @@ class getUser(APIView):
 
 
 class CheckPermissions(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -121,7 +119,7 @@ class CheckPermissions(APIView):
 
 
 class CreateSystemAdminApiView(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -148,7 +146,7 @@ class CreateSystemAdminApiView(APIView):
 
 
 class RemoveSystemAdminApiView(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
@@ -175,29 +173,28 @@ class RemoveSystemAdminApiView(APIView):
 
 
 class DeleteUserFromSystem(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
-            # if IsAdminUser and request.user.is_staff:     # TODO: Need to get the user requesting to delete..
-            email = request.data['email']
-            if email is not None:
-                user = User.objects.get(email=email)
-                print(user)
-                user.delete()
-                return Response(status=status.HTTP_200_OK,
-                                data={'message': f'The user with the id #{email} has been deleted'})
+            if IsAdminUser and request.user.is_staff: 
+                email = request.data['email']
+                if email is not None:
+                    user = User.objects.get(email=email)
+                    user.delete()
+                    return Response(status=status.HTTP_200_OK,
+                                    data={'message': f'The user with the id #{email} has been deleted'})
+                else:
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Missing email parameter"})
-            # else:
-            #     return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not authenticated"})
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "User is not admin"})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             data={"message": '[DeleteUserFromSystem] ' + str(e)})
 
 
 class ContactAdmin(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:
