@@ -26,9 +26,9 @@ from algos.Lasso_Manual import Lasso_Regression_Manual, Lasso_Regression_Manual_
 from algos.XG_Expert import ExpertMode_One, ExpertMode_Two, ExpertMode_Prediction_Script
 from algos.XG_Manual import Model_Training_Script, Prediction_Script
 from algos import MCS_Script, Mordred_Features_Script, RDKit_Features_Script
-# from rdkit import Chem
+from rdkit import Chem
 import concurrent.futures
-# import pandas as pd
+import pandas as pd
 from api import models
 from api import permissions
 from api import serializers
