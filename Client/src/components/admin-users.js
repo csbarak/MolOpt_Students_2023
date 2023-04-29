@@ -18,16 +18,75 @@ import {
 } from '@mui/material'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import axios from 'axios'
 import api from './api'
 import Notification from './notification'
 import { useCookies } from 'react-cookie'
+
+const AdminUsers = () => {
+  const [users, setUsers] = useState([])
+  const [page, setPage] = useState(0)
+  const [rowPage, setRowPage] = useState(5)
+  const [cookies, setCookie, removeCookie] = useCookies()
+
+  useEffect(async () => {
+    return await api
+      .post('get_all_users/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          setUsers(res.data[0])
+        }
+      })
+      .catch(err => Notification('Failed to fetch users', 'error').apply())
+  }, [])
+
+  const handleChangePage = (event, newpage) => {
+    setPage(newpage)
+  }
+
+  const handleChangeRowsPerPage = event => {
+    setRowPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+  return (
+    <TableContainer component={Paper}>
+      <Table aria-label='collapsible table'>
+        <TableHead>
+          <TableRow>
+            <TableCell />
+            <TableCell>ID</TableCell>
+            <TableCell align='right'>Name</TableCell>
+            <TableCell align='right'>Email</TableCell>
+            <TableCell align='right'>Affiliation</TableCell>
+            <TableCell align='right'>Position</TableCell>
+            <TableCell align='right'>Admin/User</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {users?.slice(page * rowPage, page * rowPage + rowPage).map(user => {
+            return <Row key={user.id} row={user} users={users} setUsers={setUsers} />
+          })}
+        </TableBody>
+      </Table>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component='div'
+        count={users.length}
+        rowsPerPage={rowPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </TableContainer>
+  )
+}
 
 const Row = props => {
   const { row } = props
   const [open, setOpen] = useState(false)
   const [select, setSelect] = useState(['User', 'Admin'])
-  const [selected, setSelected] = useState('User')
+  const [selected, setS0elected] = useState('User')
+  const [cookies, setCookie, removeCookie] = useCookies()
+  const [users, setUsers] = useState(props.users)
 
   const handleChange = async event => {
     if (selected === 'User') {
@@ -62,8 +121,7 @@ const Row = props => {
       .post('delete_user/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          console.log(users) //TODO: fix this
-          setUsers(users.filter(user => user.id !== e.target.id))
+          props.setUsers(users.filter(user => user.email !== e.target.id))
           return Notification(`${e.target.id} was deleted successfully`, 'success').apply()
         }
       })
@@ -128,64 +186,6 @@ const Row = props => {
         </TableCell>
       </TableRow>
     </>
-  )
-}
-
-const AdminUsers = () => {
-  const [users, setUsers] = useState([])
-  const [page, setPage] = useState(0)
-  const [rowPage, setRowPage] = useState(5)
-  const [cookies, setCookie, removeCookie] = useCookies()
-
-  useEffect(async () => {
-    return await api
-      .post('get_all_users/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
-      .then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          setUsers(res.data[0])
-        }
-      })
-      .catch(err => Notification('Failed to fetch users', 'error').apply())
-  }, [])
-
-  const handleChangePage = (event, newpage) => {
-    setPage(newpage)
-  }
-
-  const handleChangeRowsPerPage = event => {
-    setRowPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
-  return (
-    <TableContainer component={Paper}>
-      <Table aria-label='collapsible table'>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>ID</TableCell>
-            <TableCell align='right'>Name</TableCell>
-            <TableCell align='right'>Email</TableCell>
-            <TableCell align='right'>Affiliation</TableCell>
-            <TableCell align='right'>Position</TableCell>
-            <TableCell align='right'>Admin/User</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {users?.slice(page * rowPage, page * rowPage + rowPage).map(user => {
-            return <Row key={user.id} row={user} />
-          })}
-        </TableBody>
-      </Table>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component='div'
-        count={users.length}
-        rowsPerPage={rowPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </TableContainer>
   )
 }
 
