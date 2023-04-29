@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 import api from './api'
 import Notification from './notification'
+import { useCookies } from 'react-cookie'
 
 const ForgotPassword = ({ value, setValue }) => {
   const [email, setEmail] = useState('')
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   const handleClose = () => {
     setValue(!value)
@@ -12,13 +14,15 @@ const ForgotPassword = ({ value, setValue }) => {
 
   const handleForgotPassword = async () => {
     return await api
-      .post('reset_password/', email)
+      .post('reset_password/', { email: email })
       .then(res => {
+        console.log(cookies)
         if (200 <= res.status && res.status < 300) {
           return Notification('Password reset successfully , please check your email.', 'success').apply()
         }
       })
       .catch(err => {
+        console.log(cookies)
         return Notification('Password reset failed , please check email is exists and valid.', 'error').apply()
       })
   }

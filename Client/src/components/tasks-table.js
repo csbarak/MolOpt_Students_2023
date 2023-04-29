@@ -38,7 +38,7 @@ const TasksTable = () => {
 
   useEffect(async () => {
     return await api
-      .post('get_user_runs/', { email: cookies.email })
+      .post('get_user_runs/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => setTasks(res.data?.reverse()))
       .catch(err => Notification('Failed to get tasks', 'error').apply())
   }, [])

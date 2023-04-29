@@ -135,40 +135,34 @@ const AutoProcess = ({
   const validateFields = () => {
     if (isXGBoostAlgo) {
       if (isAutoXGBoost && (xgboostNumFeatures === '' || !xgboostNumFeatures.match('^(1?[0-9]|20)$'))) {
-        console.log('2')
         return false
       }
       if (
         !isAutoXGBoost &&
         (Object.values(xgboostValue).some(x => x === '') || xgboostSelection.length === 0 || !validateField('xgboost'))
       ) {
-        console.log(xgboostValue, xgboostSelection)
         return false
       }
     }
     if (isDTR) {
       if (isAutoDTR && dtrNumFeatures === '') {
-        console.log('4')
         return false
       }
       if (
         (!isAutoDTR && (Object.values(dtrValue).some(x => x === '') || dtrSelection.length === 0)) ||
         !validateField('dtr')
       ) {
-        console.log('5')
         return false
       }
     }
     if (isLasso) {
       if (isAutoLasso && numberOfFeaturesLasso === '') {
-        console.log('6')
         return false
       }
       if (
         (!isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) ||
         lassoSelection.length !== lassoValue
       ) {
-        console.log('7')
         return false
       }
     }

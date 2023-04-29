@@ -21,7 +21,7 @@ const navigation = () => {
 
   useEffect(async () => {
     return await api
-      .post('/check_permissions/', { email: cookies.email })
+      .post('/check_permissions/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)

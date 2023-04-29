@@ -37,7 +37,7 @@ const ContactForm = () => {
     }
 
     return await api
-      .post('/contact-admin/', body)
+      .post('/contact-admin/', body, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300)
           return Notification('Message send successfully', 'success', () => {

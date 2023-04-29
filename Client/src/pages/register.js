@@ -85,7 +85,7 @@ const RegisterPage = () => {
       position: 'None'
     }
     return await api
-      .post('users/', body)
+      .post('users/', body, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           return Notification('Registered successfully', 'success', () => {
@@ -105,7 +105,7 @@ const RegisterPage = () => {
   const validateFields = () => {
     return (
       values.email.match(/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/) &&
-      values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/) &&
+      values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/) &&
       values.confirmPassword === values.password &&
       values.firstName.match(/^[a-zA-Z]+$/) &&
       values.lastName.match(/^[a-zA-Z]+$/)
@@ -207,9 +207,9 @@ const RegisterPage = () => {
               required
               type='password'
               label='Password'
-              error={values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/)}
+              error={values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)}
               helperText={
-                values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/)
+                values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
                   ? errors.password
                   : null
               }

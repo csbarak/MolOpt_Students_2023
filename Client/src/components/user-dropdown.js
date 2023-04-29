@@ -33,7 +33,7 @@ const UserDropdown = () => {
 
   useEffect(async () => {
     return api
-      .post('check_permissions/', { email: cookies.email })
+      .post('check_permissions/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setIsAdmin(res.data.is_admin)
@@ -54,7 +54,7 @@ const UserDropdown = () => {
   }
   const handleLogout = () => {
     api
-      .post('logout/', {}, {})
+      .post('logout/', {}, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           removeCookie('email')

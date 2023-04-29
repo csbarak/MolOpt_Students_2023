@@ -22,9 +22,10 @@ const TabAccount = () => {
     email: '',
     affiliation: '',
     position: '',
-    isAdmin: false
+    is_staff: false
   })
   const [cookies, setCookie, removeCookie] = useCookies()
+  const [disabled, setDisabled] = useState(true)
 
   const body = {
     email: cookies.email
@@ -32,21 +33,36 @@ const TabAccount = () => {
 
   useEffect(async () => {
     return await api
-      .post('/get_user/', body)
+      .post('/get_user/', body, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
-        setInfo({
-          firstName: res.data.first_name,
-          lastName: res.data.last_name,
-          email: res.data.email,
-          affiliation: res.data.affiliation,
-          position: res.data.position,
-          isAdmin: res.data.isAdmin
-        })
+        if (200 <= res.status && res.status < 300) {
+          setInfo({
+            firstName: res.data.first_name,
+            lastName: res.data.last_name,
+            email: res.data.email,
+            affiliation: res.data.affiliation,
+            position: res.data.position,
+            is_staff: res.data.is_staff
+          })
+        }
       })
       .catch(err => {
         return Notification('Failed to get user info', 'error').apply()
       })
   }, [])
+
+  const setAndValidate = (e, type) => {
+    e.preventDefault()
+    if (
+      e.target.value === '' ||
+      Object.values(info).some(value => value === null || value === '' || value === undefined)
+    ) {
+      setInfo(prev => ({ ...prev, [type]: e.target.value }))
+      return setDisabled(true)
+    }
+    setInfo(prev => ({ ...prev, [type]: e.target.value }))
+    return setDisabled(false)
+  }
 
   return (
     <CardContent>
@@ -58,7 +74,7 @@ const TabAccount = () => {
               label='First Name'
               placeholder='John'
               value={info.firstName}
-              onChange={e => setInfo(prev => ({ ...prev, firstName: e.target.value }))}
+              onChange={e => setAndValidate(e, 'firstName')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -67,7 +83,7 @@ const TabAccount = () => {
               label='Last Name'
               placeholder='Doe'
               value={info.lastName}
-              onChange={e => setInfo(prev => ({ ...prev, lastName: e.target.value }))}
+              onChange={e => setAndValidate(e, 'lastName')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -78,13 +94,13 @@ const TabAccount = () => {
               label='Email'
               placeholder='johnDoe@example.com'
               value={info.email}
-              onChange={e => setInfo(prev => ({ ...prev, email: e.target.value }))}
+              onChange={e => setAndValidate(e, 'email')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
-              <Select label='Role' value={info.isAdmin ? 'Admin' : 'User'} disabled>
+              <Select label='Role' value={info.is_staff ? 'Admin' : 'User'} disabled>
                 <MenuItem value='Admin'>Admin</MenuItem>
                 <MenuItem value='User'>User</MenuItem>
               </Select>
@@ -96,7 +112,7 @@ const TabAccount = () => {
               label='Affiliation'
               placeholder='Ben Gurion University'
               value={info.affiliation}
-              onChange={e => setInfo(prev => ({ ...prev, affiliation: e.target.value }))}
+              onChange={e => setAndValidate(e, 'affiliation')}
             />
           </Grid>
 
@@ -106,16 +122,12 @@ const TabAccount = () => {
               label='Position'
               placeholder='Professor'
               value={info.position}
-              onChange={e => setInfo(prev => ({ ...prev, position: e.target.value }))}
+              onChange={e => setAndValidate(e, 'position')}
             />
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant='contained'
-              sx={{ marginRight: 3.5 }}
-              disabled={Object.values(info).every(value => value === '')}
-            >
+            <Button variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled}>
               Save Changes
             </Button>
           </Grid>

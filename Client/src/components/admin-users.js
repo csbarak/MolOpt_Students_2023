@@ -59,7 +59,7 @@ const Row = props => {
 
   const handleDelete = async e => {
     return await api
-      .post('delete_user/', { email: e.target.id })
+      .post('delete_user/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           console.log(users) //TODO: fix this
@@ -139,7 +139,7 @@ const AdminUsers = () => {
 
   useEffect(async () => {
     return await api
-      .post('get_all_users/', { email: cookies.email })
+      .post('get_all_users/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           setUsers(res.data[0])

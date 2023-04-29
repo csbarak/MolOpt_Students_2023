@@ -6,55 +6,63 @@ import Divider from '@mui/material/Divider'
 import api from '../components/api'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { 
-  PieChart, Pie, BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts'
 
-const GetNumberOfAdmins = (usersList) => {
+const GetNumberOfAdmins = usersList => {
   const numOfAdmins = usersList.reduce((acc, user) => {
     if (user.isAdmin) {
-      return acc + 1;
+      return acc + 1
     } else {
-      return acc;
+      return acc
     }
-  }, 0);
+  }, 0)
 
-  return numOfAdmins;
+  return numOfAdmins
 }
 
 const GetNumberOfAlgoRuns = (tasksList, algoName) => {
   const numOfRuns = tasksList.reduce((acc, task) => {
-    if (task.algorithm_name === algoName)
-      return acc + 1;
-    else
-    return acc;
-  }, 0);
+    if (task.algorithm_name === algoName) return acc + 1
+    else return acc
+  }, 0)
 
-  return numOfRuns;   
+  return numOfRuns
 }
 
 const CreateAlgosData = (tasks, algoName) => {
-  const data = {};
+  const data = {}
   tasks.forEach(task => {
-    if (task.algorithm_name === algoName)
-    {
-      const date = new Date(task.time).toLocaleString('default', { month: 'short', year: 'numeric' });
+    if (task.algorithm_name === algoName) {
+      const date = new Date(task.time).toLocaleString('default', { month: 'short', year: 'numeric' })
       if (!data[date]) {
-        data[date] = { name: date, Fail: 0, Pending: 0, Pass: 0 };
+        data[date] = { name: date, Fail: 0, Pending: 0, Pass: 0 }
       }
       if (task.status === 'failed') {
-        data[date].Fail += 1;
+        data[date].Fail += 1
       } else if (task.status === 'running') {
-        data[date].Pending += 1;
-      } else { // finished
-        data[date].Pass += 1;
+        data[date].Pending += 1
+      } else {
+        // finished
+        data[date].Pass += 1
       }
     }
-  });
-  return Object.values(data);
-};
-
-
+  })
+  return Object.values(data)
+}
 
 const Statistics = () => {
   const colors = ['#4f86f7', '#8dd1e1', '#ff9d00', '#b66dff']
@@ -77,10 +85,10 @@ const Statistics = () => {
           //setUsers(res.data)
           setDataBar([
             // { name: 'Number Of Visitors',   value: 10 },
-            { name: 'Users',  Counter: res.data.length },
+            { name: 'Users', Counter: res.data.length },
             { name: 'Admins', Counter: 2 /* GetNumberOfAdmins(users) */ },
-            { name: 'Owners', Counter: 1 }    /* Barak Only! */
-          ])    
+            { name: 'Owners', Counter: 1 } /* Barak Only! */
+          ])
         }
       })
       .catch(err => console.log(err))
@@ -93,10 +101,10 @@ const Statistics = () => {
         if (res.status >= 200 && res.status < 300) {
           //setTasks(res.data)
           setDataPie([
-            { name: 'Alignmnet',          value: GetNumberOfAlgoRuns(res.data, 'Alignment') },
+            { name: 'Alignmnet', value: GetNumberOfAlgoRuns(res.data, 'Alignment') },
             { name: 'Feature Extraction', value: GetNumberOfAlgoRuns(res.data, 'Feature Extraction') },
-            { name: 'Machine Learnings',  value: GetNumberOfAlgoRuns(res.data, 'Machine Learning') },
-            { name: 'Auto Proccess',      value: GetNumberOfAlgoRuns(res.data, 'Auto Process') }
+            { name: 'Machine Learnings', value: GetNumberOfAlgoRuns(res.data, 'Machine Learning') },
+            { name: 'Auto Proccess', value: GetNumberOfAlgoRuns(res.data, 'Auto Process') }
           ])
           setDataLineAlignment(CreateAlgosData(res.data, 'Alignment'))
           setDataLineFeatureExtraction(CreateAlgosData(res.data, 'Feature Extraction'))
@@ -117,7 +125,10 @@ const Statistics = () => {
               <div className='row'>
                 <div className='col-sm'>
                   {/* Pie Graph */}
-                  <Typography variant='body1' sx={{ fontSize: '25px' }}> Split Of Types Of Algorithm Runs </Typography>
+                  <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                    {' '}
+                    Split Of Types Of Algorithm Runs{' '}
+                  </Typography>
                   <ResponsiveContainer width='95%' height={350}>
                     <PieChart margin={{ top: 0, right: 5, left: 0, bottom: 5 }}>
                       <Pie
@@ -140,7 +151,10 @@ const Statistics = () => {
                 </div>
                 <div className='col-sm'>
                   {/* Bar Graph */}
-                  <Typography variant='body1' sx={{ fontSize: '25px' }}> Number Of Users\Admins In MolOpt </Typography>
+                  <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                    {' '}
+                    Number Of Users\Admins In MolOpt{' '}
+                  </Typography>
                   <ResponsiveContainer width='95%' height={400}>
                     <BarChart data={dataBar} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray='3 3' />
@@ -156,7 +170,10 @@ const Statistics = () => {
               </div>
               <div className='row'>
                 {/* Line Graph - Alignment */}
-                <Typography variant='body1' sx={{ fontSize: '25px' }}> Runs Status - Alignment Algorithm </Typography>
+                <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                  {' '}
+                  Runs Status - Alignment Algorithm{' '}
+                </Typography>
                 <ResponsiveContainer width='95%' height={400}>
                   <LineChart data={dataLineAlignment} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <XAxis dataKey='name' />
@@ -172,7 +189,10 @@ const Statistics = () => {
                 <Divider />
 
                 {/* Line Graph - Feature Extraction */}
-                <Typography variant='body1' sx={{ fontSize: '25px' }}> Runs Status - Feature Extraction Algorithm </Typography>
+                <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                  {' '}
+                  Runs Status - Feature Extraction Algorithm{' '}
+                </Typography>
                 <ResponsiveContainer width='95%' height={400}>
                   <LineChart data={dataLineFeatureExtraction} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <XAxis dataKey='name' />
@@ -188,7 +208,10 @@ const Statistics = () => {
                 <Divider />
 
                 {/* Line Graph - Machine Learning */}
-                <Typography variant='body1' sx={{ fontSize: '25px' }}> Runs Status - Machine Learning Algorithms </Typography>
+                <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                  {' '}
+                  Runs Status - Machine Learning Algorithms{' '}
+                </Typography>
                 <ResponsiveContainer width='95%' height={400}>
                   <LineChart data={dataLineMachineLearning} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <XAxis dataKey='name' />
@@ -204,7 +227,10 @@ const Statistics = () => {
                 <Divider />
 
                 {/* Line Graph - Auto Process */}
-                <Typography variant='body1' sx={{ fontSize: '25px' }}> Runs Status - Auto Process Algorithms </Typography>
+                <Typography variant='body1' sx={{ fontSize: '25px' }}>
+                  {' '}
+                  Runs Status - Auto Process Algorithms{' '}
+                </Typography>
                 <ResponsiveContainer width='95%' height={400}>
                   <LineChart data={dataLineAutoProcess} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                     <XAxis dataKey='name' />
