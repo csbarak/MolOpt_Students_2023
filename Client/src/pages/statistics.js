@@ -6,6 +6,7 @@ import Divider from '@mui/material/Divider'
 import api from '../components/api'
 import { useRouter } from 'next/router'
 import { useCookies } from 'react-cookie'
+import Notification from 'src/components/notification'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import {
@@ -26,11 +27,10 @@ import {
 
 const GetNumberOfAdmins = usersList => {
   const numOfAdmins = usersList.reduce((acc, user) => {
-    if (user.isAdmin) {
+    if (user.is_staff)
       return acc + 1
-    } else {
+    else
       return acc
-    }
   }, 0)
 
   return numOfAdmins
@@ -38,8 +38,10 @@ const GetNumberOfAdmins = usersList => {
 
 const GetNumberOfAlgoRuns = (tasksList, algoName) => {
   const numOfRuns = tasksList.reduce((acc, task) => {
-    if (task.algorithm_name === algoName) return acc + 1
-    else return acc
+    if (task.algorithm_name === algoName) 
+      return acc + 1
+    else 
+      return acc
   }, 0)
 
   return numOfRuns
@@ -50,17 +52,15 @@ const CreateAlgosData = (tasks, algoName) => {
   tasks.forEach(task => {
     if (task.algorithm_name === algoName) {
       const date = new Date(task.time).toLocaleString('default', { month: 'short', year: 'numeric' })
-      if (!data[date]) {
+      if (!data[date])
         data[date] = { name: date, Fail: 0, Pending: 0, Pass: 0 }
-      }
-      if (task.status === 'failed') {
+
+      if (task.status === 'failed')
         data[date].Fail += 1
-      } else if (task.status === 'running') {
+      else if (task.status === 'running')
         data[date].Pending += 1
-      } else {
-        // finished
+      else  // finished
         data[date].Pass += 1
-      }
     }
   })
   return Object.values(data)
@@ -68,8 +68,6 @@ const CreateAlgosData = (tasks, algoName) => {
 
 const Statistics = () => {
   const colors = ['#4f86f7', '#8dd1e1', '#ff9d00', '#b66dff']
-  // const [users, setUsers] = useState([])
-  // const [tasks, setTasks] = useState([])
 
   const [dataBar, setDataBar] = useState([])
   const [dataLineAlignment, setDataLineAlignment] = useState([])
@@ -83,20 +81,19 @@ const Statistics = () => {
   // Get all users:
   useEffect(async () => {
     return await api
-      .get('/users/')
+      .post('get_all_users/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
-          //setUsers(res.data)
           setDataBar([
-            // { name: 'Number Of Visitors',   value: 10 },
-            { name: 'Users', Counter: res.data.length },
-            { name: 'Admins', Counter: 2 /* GetNumberOfAdmins(users) */ },
-            { name: 'Owners', Counter: 1 } /* Barak Only! */
+            { name: 'Users', Counter: res.data[0].length },
+            { name: 'Admins', Counter: GetNumberOfAdmins(res.data[0]) },
+            { name: 'Owners', Counter: 1 } //Barak Only!  //TODO: Barak's user need to be added
           ])
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => Notification('Failed to fetch users', 'error').apply())
   }, [])
+
   // Get all tasks:
   useEffect(async () => {
     return await api
@@ -116,7 +113,7 @@ const Statistics = () => {
           setDataLineAutoProcess([CreateAlgosData(res.data, 'Auto Process')])
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => Notification('Failed to fetch tasks', 'error').apply())
   }, [])
 
   useEffect(() => {
