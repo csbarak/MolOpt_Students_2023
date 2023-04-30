@@ -83,26 +83,26 @@ const AdminUsers = () => {
 const Row = props => {
   const { row } = props
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState('User')
+  const [selected, setSelected] = useState('')
   const [cookies, setCookie, removeCookie] = useCookies()
   const [users, setUsers] = useState(props.users)
   const [disabled, setDisabled] = useState(true)
 
+  const options = ['User', 'Admin']
+  //TODO : add barak account as admin and prevent from delete
   const handleChange = async e => {
     const user = users.filter(user => user.email === e.target.id)[0]
-    if (e.target.value === 'User' && !user.is_admin) {
-      Notification('You cannot change for the same role', 'success').apply()
-      return setDisabled(true)
+    if (selected === 'User' && !user.is_staff) {
+      return Notification('You cannot change for the same role', 'error').apply()
     }
 
-    if (e.target.value === 'Admin' && user.is_admin) {
-      Notification('You cannot change for the same role', 'success').apply()
-      return setDisabled(true)
+    if (selected === 'Admin' && user.is_staff) {
+      return Notification('You cannot change for the same role', 'error').apply()
     }
 
     if (selected === 'User') {
       return await api
-        .post('/remove_admin/', { email: e.target.id })
+        .post('/remove_admin/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
             return Notification('Role changed to User successfully', 'success').apply()
@@ -113,7 +113,7 @@ const Row = props => {
         })
     } else if (selected === 'Admin') {
       return await api
-        .post('/create_admin/', { email: e.target.id })
+        .post('/create_admin/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
             return Notification('Role changed to Admin successfully', 'success').apply()
@@ -131,7 +131,7 @@ const Row = props => {
     }
 
     const user = users.filter(user => user.email === e.target.id)[0]
-    if (user.is_admin) {
+    if (user.is_staff) {
       return Notification('You cannot delete an admin', 'error').apply()
     }
 
@@ -182,21 +182,21 @@ const Row = props => {
                     variant='outlined'
                     id='form-layouts-separator-select'
                     labelId='form-layouts-separator-select-label'
-                    defaultValue={selected}
-                    value={selected}
+                    title='Select a role'
+                    value={selected === '' ? 'Select a role' : selected}
                     onChange={e => {
                       setSelected(e.target.value)
                       setDisabled(false)
                     }}
                   >
-                    {['User', 'Admin'].map((item, index) => (
+                    {options.map((item, index) => (
                       <MenuItem key={index} value={item}>
                         {item}
                       </MenuItem>
                     ))}
                   </Select>
 
-                  <Button variant='outlined' id={row.email} onClick={handleChange} disabled={disabled}>
+                  <Button variant='outlined' id={row.email} onClick={e => handleChange(e)} disabled={disabled}>
                     Save Changes
                   </Button>
                 </TableBody>
