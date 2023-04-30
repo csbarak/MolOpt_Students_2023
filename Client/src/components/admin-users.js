@@ -83,40 +83,58 @@ const AdminUsers = () => {
 const Row = props => {
   const { row } = props
   const [open, setOpen] = useState(false)
-  const [select, setSelect] = useState(['User', 'Admin'])
-  const [selected, setS0elected] = useState('User')
+  const [selected, setSelected] = useState('')
   const [cookies, setCookie, removeCookie] = useCookies()
   const [users, setUsers] = useState(props.users)
+  const [disabled, setDisabled] = useState(true)
 
-  const handleChange = async event => {
+  const options = ['User', 'Admin']
+  //TODO : add barak account as admin and prevent from delete
+  const handleChange = async e => {
+    const user = users.filter(user => user.email === e.target.id)[0]
+    if (selected === 'User' && !user.is_staff) {
+      return Notification('You cannot change for the same role', 'error').apply()
+    }
+
+    if (selected === 'Admin' && user.is_staff) {
+      return Notification('You cannot change for the same role', 'error').apply()
+    }
+
     if (selected === 'User') {
       return await api
-        .post('/remove_admin/', { email: row.id })
+        .post('/remove_admin/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
-            return Notification('Role changed to USER successfully', 'success').apply()
+            return Notification('Role changed to User successfully', 'success').apply()
           }
         })
         .catch(err => {
-          return Notification('Failed to change role to USER', 'error').apply()
+          return Notification('Failed to change role to User', 'error').apply()
         })
     } else if (selected === 'Admin') {
       return await api
-        .post('/create_admin/', { email: row.id })
+        .post('/create_admin/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
         .then(res => {
           if (200 <= res.status && res.status < 300) {
-            return Notification('Role changed to ADMIN successfully', 'success').apply()
+            return Notification('Role changed to Admin successfully', 'success').apply()
           }
         })
         .catch(err => {
-          return Notification('Failed to change role to ADMIN', 'error').apply()
+          return Notification('Failed to change role to Admin', 'error').apply()
         })
-    } else {
-      // Do nothing
     }
   }
 
   const handleDelete = async e => {
+    if (e.target.id === cookies.email) {
+      return Notification('You cannot delete yourself', 'error').apply()
+    }
+
+    const user = users.filter(user => user.email === e.target.id)[0]
+    if (user.is_staff) {
+      return Notification('You cannot delete an admin', 'error').apply()
+    }
+
     return await api
       .post('delete_user/', { email: e.target.id }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
@@ -164,18 +182,21 @@ const Row = props => {
                     variant='outlined'
                     id='form-layouts-separator-select'
                     labelId='form-layouts-separator-select-label'
-                    defaultValue={selected}
-                    value={selected}
-                    onChange={e => setSelected(e.target.value)}
+                    title='Select a role'
+                    value={selected === '' ? 'Select a role' : selected}
+                    onChange={e => {
+                      setSelected(e.target.value)
+                      setDisabled(false)
+                    }}
                   >
-                    {select.map((item, index) => (
+                    {options.map((item, index) => (
                       <MenuItem key={index} value={item}>
                         {item}
                       </MenuItem>
                     ))}
                   </Select>
 
-                  <Button variant='outlined' onClick={handleChange}>
+                  <Button variant='outlined' id={row.email} onClick={e => handleChange(e)} disabled={disabled}>
                     Save Changes
                   </Button>
                 </TableBody>

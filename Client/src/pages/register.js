@@ -85,7 +85,7 @@ const RegisterPage = () => {
       position: 'None'
     }
     return await api
-      .post('users/', body, { headers: { Authorization: `Token ${cookies.token}` } })
+      .post('users/', body)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           return Notification('Registered successfully', 'success', () => {

@@ -16,13 +16,11 @@ const ForgotPassword = ({ value, setValue }) => {
     return await api
       .post('reset_password/', { email: email })
       .then(res => {
-        console.log(cookies)
         if (200 <= res.status && res.status < 300) {
           return Notification('Password reset successfully , please check your email.', 'success').apply()
         }
       })
       .catch(err => {
-        console.log(cookies)
         return Notification('Password reset failed , please check email is exists and valid.', 'error').apply()
       })
   }

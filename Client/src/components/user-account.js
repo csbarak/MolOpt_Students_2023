@@ -51,6 +51,20 @@ const TabAccount = () => {
       })
   }, [])
 
+  const handleSubmit = async e => {
+    e.preventDefault()
+    return await api
+      .post(`users/${info.email}`, info, { headers: { Authorization: `Token ${cookies.token}` } })
+      .then(res => {
+        if (200 <= res.status && res.status < 300) {
+          return Notification('User info updated', 'success').apply()
+        }
+      })
+      .catch(err => {
+        return Notification('Failed to update user info', 'error').apply()
+      })
+  }
+
   const setAndValidate = (e, type) => {
     e.preventDefault()
     if (
@@ -127,7 +141,7 @@ const TabAccount = () => {
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled}>
+            <Button variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled} onClick={handleSubmit}>
               Save Changes
             </Button>
           </Grid>
