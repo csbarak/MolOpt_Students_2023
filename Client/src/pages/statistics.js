@@ -4,6 +4,8 @@ import { Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import api from '../components/api'
+import { useRouter } from 'next/router'
+import { useCookies } from 'react-cookie'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import {
@@ -75,6 +77,8 @@ const Statistics = () => {
   const [dataLineMachineLearning, setDataLineMachineLearning] = useState([])
   const [dataLineAutoProcess, setDataLineAutoProcess] = useState([])
   const [dataPie, setDataPie] = useState([])
+  const [cookies, setCookie, removeCookie] = useCookies()
+  const router = useRouter()
 
   // Get all users:
   useEffect(async () => {
@@ -113,6 +117,21 @@ const Statistics = () => {
         }
       })
       .catch(err => console.log(err))
+  }, [])
+
+  useEffect(() => {
+    if (
+      cookies === undefined ||
+      cookies.email === undefined ||
+      cookies.token === undefined ||
+      cookies.email === '' ||
+      cookies.token === '' ||
+      cookies.email === null ||
+      cookies.token === null
+    ) {
+      alert('You are not logged in')
+      return router.push('/login')
+    }
   }, [])
 
   return (

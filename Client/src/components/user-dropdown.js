@@ -57,10 +57,9 @@ const UserDropdown = () => {
       .post('logout/', {}, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          removeCookie('email')
-          removeCookie('csrftoken')
-          removeCookie('token')
-          router.push('/')
+          setCookie('email', '', { path: '/', sameSite: true })
+          setCookie('token', '', { path: '/', sameSite: true })
+          return router.push('/')
         }
       })
       .catch(err => {
