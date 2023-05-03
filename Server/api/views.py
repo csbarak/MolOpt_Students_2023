@@ -2,6 +2,7 @@ from dataclasses import fields
 from django.core.serializers import serialize
 from .serializers import UserAlgoritmRunSerializer
 from .models import UserProfile as User
+import io
 import os
 import zipfile
 import threading
@@ -410,19 +411,19 @@ def cleanCSV(file):
     df.to_csv(file+".csv", index=False)
 
 class UserGetUserRunsApiView(APIView):
-    def get(self,request):
+    def post(self,request):
         runs=UserAlgoritmRun.objects.filter(user_email=request.data['email'])
         serializer = UserAlgoritmRunSerializer(runs, many=True)
         return Response(serializer.data)
 
 class UserGetAllRunsApiView(APIView):
-    def get(self,request):
+    def post(self,request):
         runs=UserAlgoritmRun.objects.all()
         serializer = UserAlgoritmRunSerializer(runs, many=True)
         return Response(serializer.data)
 
 class UserDownloadResultApiView(APIView):
-    def get(self,request):
+    def post(self,request):
         rId=request.data['id']
         run=UserAlgoritmRun.objects.get(id=rId)
         files=run.result.split('@')
@@ -430,7 +431,7 @@ class UserDownloadResultApiView(APIView):
             for f in files:
                 if os.path.exists(os.path.join(fs.location,f)):
                     result.write(os.path.join(fs.location,f))
-            response = Response(result, content_type='application/zip')
+            response = Response(result.fp, content_type='application/zip')
             response['Content-Disposition'] = 'attachment; filename=%s' % f'Result{rId}.zip'
             return response
 
