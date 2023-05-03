@@ -11,9 +11,7 @@ import {
   TableCell,
   Typography,
   TableContainer,
-  TablePagination,
-  Tooltip,
-  Button
+  TablePagination
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -54,12 +52,16 @@ const TasksTable = () => {
 
   const handleTaskDelete = async e => {
     e.preventDefault()
-    try {
-      await api.post('delete_run/', { id: e.target.id })
-      setTasks(tasks.filter(task => task.id !== e.target.id))
-    } catch (error) {
-      Notification('Failed to delete task', 'error').apply()
-    }
+    const id = e.currentTarget.id
+    return await api
+      .post('remove_run/', { id: id })
+      .then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          setTasks(tasks.filter(task => task.id !== parseInt(id)))
+          return Notification('Task deleted successfully', 'success').apply()
+        }
+      })
+      .catch(err => Notification('Failed to delete task', 'error').apply())
   }
 
   const handleDownload = async e => {
@@ -73,9 +75,9 @@ const TasksTable = () => {
         }
       })
       const blob = await response.blob()
-      saveAs(blob, 'result.zip')
+      return saveAs(blob, 'result.zip')
     } catch (error) {
-      Notification('Failed to download result', 'error').apply()
+      return Notification('Failed to download result', 'error').apply()
     }
   }
 
@@ -119,7 +121,7 @@ const TasksTable = () => {
                   <a
                     href='#'
                     className={row.status !== 'finished' ? 'disabled-link' : ''}
-                    onClick={e => handleDownload(e)}
+                    onClick={handleDownload}
                     id={row.id}
                     sx={{ m: 0 }}
                   >
@@ -128,10 +130,9 @@ const TasksTable = () => {
                 </TableCell>
                 <TableCell>
                   <IconButton
+                    onClick={handleTaskDelete}
                     id={row.id}
-                    disabled={true}
                     aria-label='delete'
-                    onClick={e => handleTaskDelete(e)}
                     sx={{ display: row.status === 'failed' || row.status === 'finished' ? '' : 'none' }}
                   >
                     <DeleteIcon />
