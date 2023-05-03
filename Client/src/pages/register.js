@@ -87,19 +87,15 @@ const RegisterPage = () => {
     return await api
       .post('users/', body)
       .then(res => {
-        console.log(res)
-        if (res.status === 201) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Registered successfully', 'success', () => {
             router.push('/')
           }).apply()
         }
-        if (res.status === 400) {
-          return Notification('EMail already exists in the system', 'error', () => {
-            router.push('/')
-          }).apply()
-        }
       })
-      .catch(err => Notification(err, 'error').apply())
+      .catch(err => {
+        return Notification('Failed to register', 'error').apply()
+      })
   }
 
   // ** Hook
@@ -109,7 +105,7 @@ const RegisterPage = () => {
   const validateFields = () => {
     return (
       values.email.match(/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/) &&
-      values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/) &&
+      values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/) &&
       values.confirmPassword === values.password &&
       values.firstName.match(/^[a-zA-Z]+$/) &&
       values.lastName.match(/^[a-zA-Z]+$/)
@@ -211,9 +207,9 @@ const RegisterPage = () => {
               required
               type='password'
               label='Password'
-              error={values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/)}
+              error={values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)}
               helperText={
-                values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{6,}$/)
+                values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
                   ? errors.password
                   : null
               }

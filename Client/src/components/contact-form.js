@@ -18,22 +18,37 @@ import {
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import api from './api'
 import Notification from './notification'
+import { useRouter } from 'next/router'
+import { useCookies } from 'react-cookie'
 
 const ContactForm = () => {
+  const router = useRouter()
+  const [cookies, setCookie, removeCookie] = useCookies()
+
   const [selection, setSelection] = useState('')
   const [message, setMessage] = useState('')
   const options = ['Report a bug', 'Report a problem', 'Suggestion']
 
   const handleOnClick = async () => {
+    const body = {
+      subject: selection,
+      email: cookies.email,
+      message: message
+    }
+
     return await api
-      .post('contact-admin/', { type: selection, email: message })
+      .post('/contact-admin/', body, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
-        if (res.status === 200) return Notification('Message send successfully', 'success').apply()
+        if (200 <= res.status && res.status < 300)
+          return Notification('Message send successfully', 'success', () => {
+            router.push('/dashboard')
+          }).apply()
       })
       .catch(err => {
-        console.log(err)
+        return Notification('Failed to send message', 'error').apply()
       })
   }
+
   return (
     <Card>
       <CardHeader title='Send Message' titleTypographyProps={{ variant: 'h6' }} />

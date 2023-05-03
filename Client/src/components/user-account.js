@@ -13,6 +13,7 @@ import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
 import { useEffect } from 'react'
 import api from './api'
+import { useCookies } from 'react-cookie'
 
 const TabAccount = () => {
   const [info, setInfo] = useState({
@@ -20,25 +21,62 @@ const TabAccount = () => {
     lastName: '',
     email: '',
     affiliation: '',
-    position: ''
+    position: '',
+    is_staff: false
   })
+  const [cookies, setCookie, removeCookie] = useCookies()
+  const [disabled, setDisabled] = useState(true)
+
+  const body = {
+    email: cookies.email
+  }
 
   useEffect(async () => {
     return await api
-      .get('user/')
+      .post('/get_user/', body, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
-        setInfo({
-          firstName: res.data.first_name,
-          lastName: res.data.last_name,
-          email: res.data.email,
-          affiliation: res.data.affiliation,
-          position: res.data.position
-        })
+        if (200 <= res.status && res.status < 300) {
+          setInfo({
+            firstName: res.data.first_name,
+            lastName: res.data.last_name,
+            email: res.data.email,
+            affiliation: res.data.affiliation,
+            position: res.data.position,
+            is_staff: res.data.is_staff
+          })
+        }
       })
       .catch(err => {
-        console.log(err)
+        return Notification('Failed to get user info', 'error').apply()
       })
   }, [])
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    return await api
+      .post(`users/${info.email}`, info, { headers: { Authorization: `Token ${cookies.token}` } })
+      .then(res => {
+        if (200 <= res.status && res.status < 300) {
+          return Notification('User info updated', 'success').apply()
+        }
+      })
+      .catch(err => {
+        return Notification('Failed to update user info', 'error').apply()
+      })
+  }
+
+  const setAndValidate = (e, type) => {
+    e.preventDefault()
+    if (
+      e.target.value === '' ||
+      Object.values(info).some(value => value === null || value === '' || value === undefined)
+    ) {
+      setInfo(prev => ({ ...prev, [type]: e.target.value }))
+      return setDisabled(true)
+    }
+    setInfo(prev => ({ ...prev, [type]: e.target.value }))
+    return setDisabled(false)
+  }
 
   return (
     <CardContent>
@@ -50,7 +88,7 @@ const TabAccount = () => {
               label='First Name'
               placeholder='John'
               value={info.firstName}
-              onChange={e => setInfo(prev => ({ ...prev, firstName: e.target.value }))}
+              onChange={e => setAndValidate(e, 'firstName')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -59,7 +97,7 @@ const TabAccount = () => {
               label='Last Name'
               placeholder='Doe'
               value={info.lastName}
-              onChange={e => setInfo(prev => ({ ...prev, lastName: e.target.value }))}
+              onChange={e => setAndValidate(e, 'lastName')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -70,15 +108,15 @@ const TabAccount = () => {
               label='Email'
               placeholder='johnDoe@example.com'
               value={info.email}
-              onChange={e => setInfo(prev => ({ ...prev, email: e.target.value }))}
+              onChange={e => setAndValidate(e, 'email')}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
-              <Select label='Role' defaultValue='admin' disabled>
-                <MenuItem value='admin'>Admin</MenuItem>
-                <MenuItem value='subscriber'>Subscriber</MenuItem>
+              <Select label='Role' value={info.is_staff ? 'Admin' : 'User'} disabled>
+                <MenuItem value='Admin'>Admin</MenuItem>
+                <MenuItem value='User'>User</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -88,7 +126,7 @@ const TabAccount = () => {
               label='Affiliation'
               placeholder='Ben Gurion University'
               value={info.affiliation}
-              onChange={e => setInfo(prev => ({ ...prev, affiliation: e.target.value }))}
+              onChange={e => setAndValidate(e, 'affiliation')}
             />
           </Grid>
 
@@ -98,16 +136,12 @@ const TabAccount = () => {
               label='Position'
               placeholder='Professor'
               value={info.position}
-              onChange={e => setInfo(prev => ({ ...prev, position: e.target.value }))}
+              onChange={e => setAndValidate(e, 'position')}
             />
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant='contained'
-              sx={{ marginRight: 3.5 }}
-              disabled={Object.values(info).every(value => value === '')}
-            >
+            <Button variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled} onClick={handleSubmit}>
               Save Changes
             </Button>
           </Grid>

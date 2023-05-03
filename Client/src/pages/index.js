@@ -10,7 +10,6 @@ import api from '../components/api'
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
@@ -34,6 +33,7 @@ import themeConfig from 'src/configs/themeConfig'
 import BlankLayout from 'src/components/blank-layout'
 import Notification from 'src/components/notification'
 import ForgotPassword from 'src/components/forgot-password'
+import { useCookies } from 'react-cookie'
 
 // ** Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -67,6 +67,7 @@ const LoginPage = () => {
     showPassword: false
   })
   const [showForgot, setShowForgot] = useState(false)
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   // ** Hook
   const theme = useTheme()
@@ -94,14 +95,17 @@ const LoginPage = () => {
     return await api
       .post('login/', body)
       .then(res => {
-        if (res.status === 200) {
-          console.log(res.data.token)
+        if (200 <= res.status && res.status < 300) {
+          setCookie('email', values.email, { path: '/', sameSite: true })
+          setCookie('token', res.data.token, { path: '/', sameSite: true })
           return Notification('Logged in successfully', 'success', () => {
             router.push('/dashboard')
           }).apply()
         }
       })
-      .catch(err => Notification(err, 'error').apply())
+      .catch(err => {
+        return Notification('Failed to login', 'error').apply()
+      })
   }
 
   return (

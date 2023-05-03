@@ -12,100 +12,36 @@ import {
   Typography,
   TableContainer,
   TablePagination,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material'
-
-const rows = [
-  {
-    age: 27,
-    status: 'running',
-    date: '09/27/2018',
-    name: 'Task1',
-    time: '16:20',
-    details: 'some sort of details',
-    files: 'file 1 file 2'
-  },
-  {
-    age: 61,
-    date: '09/23/2016',
-    time: '16:20',
-    status: 'running',
-    name: 'Task2',
-    details: 'some sort of details',
-    files: 'file 1 file 2'
-  },
-  {
-    age: 59,
-    date: '10/15/2017',
-    name: 'Task3',
-    status: 'rejected',
-    time: '16:20',
-    details: 'some sort of details',
-    files: 'file 1 file 2'
-  },
-  {
-    age: 30,
-    date: '06/12/2018',
-    status: 'success',
-    time: '16:20',
-    name: 'Task4',
-    details: 'some sort of details',
-    files: 'file 1 file 2'
-  },
-  {
-    age: 66,
-    status: 'success',
-    date: '03/24/2018',
-    time: '16:20',
-    name: 'Task5',
-    files: 'file 1 file 2',
-    details: 'some sort of details'
-  },
-  {
-    age: 33,
-    date: '08/25/2017',
-    time: '16:20',
-    name: 'Task6',
-    status: 'failed',
-    details: 'some sort of details',
-    files: 'file 1 file 2'
-  },
-  {
-    age: 61,
-    status: 'failed',
-    date: '06/01/2017',
-    time: '16:20',
-    name: 'Task7',
-    files: 'file 1 file 2',
-    details: 'some sort of details'
-  },
-  {
-    age: 22,
-    date: '12/03/2017',
-    time: '16:20',
-    name: 'Task1',
-    status: 'failed',
-    files: 'file 1 file 2',
-    details: 'some sort of details'
-  }
-]
+import IconButton from '@mui/material/IconButton'
+import DeleteIcon from '@mui/icons-material/Delete'
+import api from './api'
+import { useCookies } from 'react-cookie'
+import { saveAs } from 'file-saver'
+import Notification from './notification'
 
 const statusObj = {
   running: { color: 'info' },
   failed: { color: 'error' },
   current: { color: 'primary' },
   rejected: { color: 'warning' },
-  success: { color: 'success' }
+  finished: { color: 'success' }
 }
 
 const TasksTable = () => {
   const [page, setPage] = useState(0)
   const [rowPage, setRowPage] = useState(5)
   const [tasks, setTasks] = useState([])
+  const [cookies, setCookie, removeCookie] = useCookies()
 
-  // useEffect(async () => {
-  //   return await axios.get('tasks/').then(res => setTasks(res.data))
-  // }, [])
+  useEffect(async () => {
+    return await api
+      .post('get_user_runs/', { email: cookies.email }, { headers: { Authorization: `Token ${cookies.token}` } })
+      .then(res => setTasks(res.data?.reverse()))
+      .catch(err => Notification('Failed to get tasks', 'error').apply())
+  }, [])
 
   const handleChangePage = (e, newpage) => {
     setPage(newpage)
@@ -116,9 +52,31 @@ const TasksTable = () => {
     setPage(0)
   }
 
-  const handleDownload = e => {
+  const handleTaskDelete = async e => {
     e.preventDefault()
-    console.log('click')
+    try {
+      await api.post('delete_run/', { id: e.target.id })
+      setTasks(tasks.filter(task => task.id !== e.target.id))
+    } catch (error) {
+      Notification('Failed to delete task', 'error').apply()
+    }
+  }
+
+  const handleDownload = async e => {
+    e.preventDefault()
+    try {
+      const response = await fetch('http://localhost:8000/api/download_result/', {
+        method: 'POST',
+        body: JSON.stringify({ id: e.target.id }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const blob = await response.blob()
+      saveAs(blob, 'result.zip')
+    } catch (error) {
+      Notification('Failed to download result', 'error').apply()
+    }
   }
 
   return (
@@ -135,16 +93,16 @@ const TasksTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.slice(page * rowPage, page * rowPage + rowPage).map(row => (
-              <TableRow hover key={row.name} sx={{ '&:last-of-type td, &:last-of-type th': { border: 0 } }}>
+            {tasks.slice(page * rowPage, page * rowPage + rowPage).map(row => (
+              <TableRow hover key={row.id} sx={{ '&:last-of-type td, &:last-of-type th': { border: 0 } }}>
                 <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important' }}>{row.name}</Typography>
-                    <Typography variant='caption'>{row.files}</Typography>
+                    <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important' }}>Task {row.id}</Typography>
+                    <Typography variant='caption'>{row.algorithm_name}</Typography>
                   </Box>
                 </TableCell>
-                <TableCell>{row.date}</TableCell>
-                <TableCell>{row.time}</TableCell>
+                <TableCell>{row?.time?.split('T')[0]}</TableCell>
+                <TableCell>{row?.time?.split('T')[1].split('.')[0]}</TableCell>
                 <TableCell>
                   <Chip
                     label={row.status}
@@ -157,12 +115,27 @@ const TasksTable = () => {
                     }}
                   />
                 </TableCell>
+                <TableCell sx={{ m: 0 }}>
+                  <a
+                    href='#'
+                    className={row.status !== 'finished' ? 'disabled-link' : ''}
+                    onClick={e => handleDownload(e)}
+                    id={row.id}
+                    sx={{ m: 0 }}
+                  >
+                    Download
+                  </a>
+                </TableCell>
                 <TableCell>
-                  <Tooltip title='Not Implemented yet' placement='left' arrow>
-                    <a href='#' onClick={e => handleDownload(e)}>
-                      Download
-                    </a>
-                  </Tooltip>
+                  <IconButton
+                    id={row.id}
+                    disabled={true}
+                    aria-label='delete'
+                    onClick={e => handleTaskDelete(e)}
+                    sx={{ display: row.status === 'failed' || row.status === 'finished' ? '' : 'none' }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -171,7 +144,7 @@ const TasksTable = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component='div'
-          count={rows.length}
+          count={tasks.length}
           rowsPerPage={rowPage}
           page={page}
           onPageChange={handleChangePage}

@@ -6,11 +6,13 @@ import { useState, useEffect } from 'react'
 import { Tab, Card, Button, Typography, CardContent, IconButton, Tooltip } from '@mui/material'
 import { TabList, TabPanel, TabContext } from '@mui/lab'
 import DeleteIcon from '@mui/icons-material/Delete'
+import Fade from '@mui/material/Fade'
 import { clearOnNavi } from './clear-fields'
 import AutoProcess from './auto-process'
 import { validate } from './validate-file-type'
 import api from './api'
 import Notification from 'src/components/notification'
+import { useCookies } from 'react-cookie'
 
 const FileUpload = () => {
   const [value, setValue] = useState('1')
@@ -19,6 +21,7 @@ const FileUpload = () => {
   const [selectedAlignmentFile, setSelectedAlignmentFile] = useState(null)
   const [selectedDatasetFile, setSelectedDatasetFile] = useState(null)
   const [autoController, setAutoController] = useState(false)
+  const [cookies, setCookie, removeCookie] = useCookies()
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -27,7 +30,6 @@ const FileUpload = () => {
   const handleUploadRef = e => {
     e.preventDefault()
     if (!validate(e.target.files[0], 'alignment')) {
-      //**need to add error for uploading suffix incorrect
       return
     }
     setSelectedRefFile(e.target.files[0])
@@ -60,16 +62,18 @@ const FileUpload = () => {
     e.preventDefault()
     const formData = new FormData()
     formData.append('ref', selectedRefFile)
-    formData.append('db', selectedLigandFile)
-    console.log('alignment', formData)
+    formData.append('ligand', selectedLigandFile)
+    formData.append('email', cookies.email)
     return await api
       .post('run_alignment/', formData)
       .then(res => {
-        if (res.status === 200) {
+        if (200 <= res.status && res.status < 300) {
           return Notification('Task started successfully', 'success').apply()
         }
       })
-      .catch(err => Notification('Task could not started , please try again', 'error').apply())
+      .catch(err => {
+        return Notification('Task could not started , please try again', 'error').apply()
+      })
   }
 
   useEffect(() => {
@@ -97,7 +101,16 @@ const FileUpload = () => {
                 <Typography variant='body2' sx={{ mb: 4 }}>
                   Alignment of molecules is done using RDKit Most Common Substructure (MCS Module)
                 </Typography>
-                <Tooltip title='Click Me!' placement='left' arrow>
+                <Tooltip
+                  title={
+                    <Typography fontSize={15} variant='body1' color={'#fff'}>
+                      File that contains the 3D coordinates of a reference molecule , need to be in .sdf format
+                    </Typography>
+                  }
+                  TransitionComponent={Fade}
+                  placement='left'
+                  arrow
+                >
                   <Button
                     variant='contained'
                     component='label'
@@ -115,7 +128,17 @@ const FileUpload = () => {
                 >
                   <DeleteIcon />
                 </IconButton>
-                <Tooltip title='Click Me!' placement='right' arrow>
+                <Tooltip
+                  title={
+                    <Typography fontSize={15} variant='body1' color={'#fff'}>
+                      File that contains the 3D coordinates of a small molecule compound that is being studied in
+                      relation to the reference molecule , need to be in .sdf format
+                    </Typography>
+                  }
+                  TransitionComponent={Fade}
+                  placement='right'
+                  arrow
+                >
                   <Button
                     variant='contained'
                     component='label'
@@ -136,8 +159,9 @@ const FileUpload = () => {
               <Button
                 variant='contained'
                 disabled={!selectedRefFile || !selectedLigandFile}
+                color={selectedRefFile && selectedLigandFile ? 'success' : 'secondary'}
                 onClick={e => handleOnSubmit(e)}
-                sx={{ display: `${autoController === true ? 'none' : ''}` }}
+                sx={{ display: `${autoController === true ? 'none' : ''}`, ml: 2 }}
               >
                 Submit
               </Button>
@@ -148,7 +172,17 @@ const FileUpload = () => {
                   Features extracted are from rdkit and Mordred libraries you are free to choose the features which you
                   wish to extract
                 </Typography>
-                <Tooltip title='Click Me!' placement='left' arrow>
+                <Tooltip
+                  title={
+                    <Typography fontSize={15} variant='body1' color={'#fff'}>
+                      File format that represents the structure of a molecule in a text format. It contains information
+                      such as the atoms, bonds, and 3D coordinates of the molecule , need to be in .mol2 format
+                    </Typography>
+                  }
+                  TransitionComponent={Fade}
+                  placement='left'
+                  arrow
+                >
                   <Button
                     variant='contained'
                     component='label'
@@ -173,7 +207,17 @@ const FileUpload = () => {
                 <Typography variant='body2' sx={{ mb: 4 }}>
                   Execution of multiple algorithms using selected dataset
                 </Typography>
-                <Tooltip title='Click Me!' placement='left' arrow>
+                <Tooltip
+                  title={
+                    <Typography fontSize={15} variant='body1' color={'#fff'}>
+                      File that contains a collection of molecules along with some associated properties or activities,
+                      such as binding affinity or biological activity , need to be in .csv format
+                    </Typography>
+                  }
+                  TransitionComponent={Fade}
+                  placement='left'
+                  arrow
+                >
                   <Button
                     variant='contained'
                     component='label'

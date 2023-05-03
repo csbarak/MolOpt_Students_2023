@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -20,6 +20,8 @@ import TabSecurity from 'src/components/user-security'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
+import { useRouter } from 'next/router'
+import { useCookies } from 'react-cookie'
 
 const Tab = styled(MuiTab)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -42,6 +44,23 @@ const TabName = styled('span')(({ theme }) => ({
 const AccountSettings = () => {
   // ** State
   const [value, setValue] = useState('account')
+  const [cookies, setCookie, removeCookie] = useCookies()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (
+      cookies === undefined ||
+      cookies.email === undefined ||
+      cookies.token === undefined ||
+      cookies.email === '' ||
+      cookies.token === '' ||
+      cookies.email === null ||
+      cookies.token === null
+    ) {
+      alert('You are not logged in')
+      return router.push('/login')
+    }
+  }, [])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)

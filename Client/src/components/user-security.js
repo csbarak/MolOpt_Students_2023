@@ -10,8 +10,7 @@ import {
   FormControl,
   OutlinedInput,
   InputAdornment,
-  Button,
-  TextField
+  Button
 } from '@mui/material'
 
 // ** Icons Imports
@@ -26,7 +25,6 @@ const TabSecurity = () => {
     newPassword: '',
     currentPassword: '',
     showNewPassword: false,
-    confirmNewPassword: '',
     showCurrentPassword: false,
     showConfirmNewPassword: false
   })
@@ -58,9 +56,19 @@ const TabSecurity = () => {
   }
 
   const handleOnClick = async () => {
-    return await api.post('change-password/', { password: values.newPassword }).then(res => {
-      if (res.status === 200) return Notification('Password changed successfully', 'success').apply()
-    })
+    return await api
+      .post(
+        'change-password/',
+        { password: values.newPassword },
+        { headers: { Authorization: `Token ${cookies.token}` } }
+      )
+      .then(res => {
+        if (200 <= res.status && res.status < 300)
+          return Notification('Password changed successfully', 'success').apply()
+      })
+      .catch(err => {
+        return Notification('Failed to change password', 'error').apply()
+      })
   }
 
   return (
@@ -117,7 +125,15 @@ const TabSecurity = () => {
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleOnClick}>
+            <Button
+              variant='contained'
+              sx={{ marginRight: 3.5 }}
+              onClick={handleOnClick}
+              disabled={
+                values.currentPassword === values.newPassword ||
+                !values.newPassword.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
+              }
+            >
               Save Changes
             </Button>
           </Grid>
