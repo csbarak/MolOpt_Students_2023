@@ -51,6 +51,8 @@ const AutoProcess = ({
   const [isAutoDTR, setIsAutoDTR] = useState(false)
   const [isAutoLasso, setIsAutoLasso] = useState(false)
   const [xgboostValue, setXGBoostValues] = useState({
+    numberOfFeatures: '',
+    features: '',
     learningRate: '',
     lambda: '',
     dropRate: '',
@@ -197,11 +199,9 @@ const AutoProcess = ({
       formData.append('ligand', selectedLigandFile)
       formData.append('binding', bindingSelection)
       formData.append('xgboost', {
-        numberOfFeatures: xgboostNumFeatures,
         isXGBoost: isXGBoostAlgo,
         isAuto: isAutoXGBoost,
         xgboostValue: xgboostValue,
-        features: xgboostSelection
       })
       formData.append('dtr', {
         isDTR: isDTR,
