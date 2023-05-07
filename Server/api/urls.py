@@ -27,8 +27,10 @@ urlpatterns = [
     path('run_ML_algorithms/',          views.UserRunMLAlgorithmsApiView.as_view()),        # body of the api is 1 file and list of dictionaries (dict foreach alg)
     path('get_all_runs/',               views.UserGetAllRunsApiView.as_view()),
     path('get_user_runs/',              views.UserGetUserRunsApiView.as_view()),
-    path('download_result/',            views.UserDownloadResultApiView.as_view()),
     path('remove_run/',                 views.UserRemoveRunApiView.as_view()),
+    path('download_result/',            views.UserDownloadResultApiView.as_view()),
+    path('run_auto_process/',           views.UserRunAutoProcessApiView.as_view()),
+
     
     ### get:
     # path('tasks/',                    views.TasksApiView.as_view()),

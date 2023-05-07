@@ -48,6 +48,8 @@ const AutoProcess = ({
   const [isAutoDTR, setIsAutoDTR] = useState(false)
   const [isAutoLasso, setIsAutoLasso] = useState(false)
   const [xgboostValue, setXGBoostValues] = useState({
+    numberOfFeatures: '',
+    features: '',
     learningRate: '',
     lambda: '',
     dropRate: '',

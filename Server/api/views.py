@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseServerError
 
 from .serializers import UserAlgoritmRunSerializer
 from .models import UserProfile as User
+import io
 import os
 import zipfile
 import threading
@@ -32,7 +33,9 @@ import pandas as pd
 from api import models
 from api import permissions
 from api import serializers
+from datetime import datetime, timedelta
 
+RESULT_SAVING_TIME=4 #in weeks
 MAX_PARALLEL_RUNS = 5
 RUNS_QUEUE = []
 ADMIN_EMAILS = {
@@ -232,24 +235,34 @@ executor = concurrent.futures.ThreadPoolExecutor()
 
 
 def Clear_media():
-    pass
-    # files = fs.listdir(fs.location)
-    # for file in files[1]:
-    #     fs.delete(os.path.join(fs.location,file))
+    files = fs.listdir(fs.location)
+    for file in files[1]:
+        time_diff=datetime.now()-datetime.fromtimestamp(fs.get_created_time(file))
+        if file.startswith('Result'):
+            if time_diff>timedelta(weeks=RESULT_SAVING_TIME):
+                fs.delete(os.path.join(fs.location,file))
+        else:
+            if time_diff>timedelta(hours=10):
+                fs.delete(os.path.join(fs.location,file))
 
 
 def runMCS(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
         MCS_Script.make_it_run('ref' + str(rId), 'ligand' + str(rId), rId)
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                             'noreplymolopt@gmail.com', [data['email']])
-        email.send()
-        Clear_media()
         run = UserAlgoritmRun.objects.get(id=rId)
-        run.status = 'finished'
-        run.result = "aligned" + str(rId) + ".sdf"
-        run.save()
-        RUNS_QUEUE.remove(rId)
+        if run.algorithm_name=='Alignment':
+            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                                'noreplymolopt@gmail.com', [data['email']])
+            email.send()
+            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf' )):
+                        result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
+            run.status = 'finished'
+            run.result = zip_file_path
+            run.save()
+            RUNS_QUEUE.remove(rId)
+            Clear_media()
 
 
 class UserRunAlignmentApiView(APIView):
@@ -269,31 +282,34 @@ class UserRunAlignmentApiView(APIView):
             my_run.status = 'failed'
             my_run.save()
             RUNS_QUEUE.remove(my_run.id)
-            print(e)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runFeature(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        res = ''
+        res = []
         if data['Mordred']:
             Mordred_Features_Script.make_it_run('mol' + str(rId), rId)
-            res += 'FeaturesExtracted_MORDRED' + str(rId) + '.csv'
+            res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
         if data['RDKit']:
             RDKit_Features_Script.make_it_run('mol' + str(rId), rId)
-            if len(res) != 0:
-                res += '@'
-            res += 'FeaturesExtracted_RDKIT' + str(rId) + '.csv'
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                             'noreplymolopt@gmail.com', [data['email']])
-        email.send()
-        Clear_media()
+            res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
         run = UserAlgoritmRun.objects.get(id=rId)
-        run.status = 'finished'
-        run.result = res
-        run.save()
-        RUNS_QUEUE.remove(rId)
+        if run.algorithm_name=='Feature Extraction':
+            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                                'noreplymolopt@gmail.com', [data['email']])
+            email.send()
+            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                    for f in res:
+                        if os.path.exists(os.path.join(fs.location,f )):
+                            result.write(fs.path(f), arcname=os.path.basename(f))
+            run.status = 'finished'
+            run.result = zip_file_path
+            run.save()
+            RUNS_QUEUE.remove(rId)
+            Clear_media()
 
 
 class UserRunFeatureExtractionApiView(APIView):
@@ -303,68 +319,69 @@ class UserRunFeatureExtractionApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = 'Feature Extraction'
         my_run.save()
+        RUNS_QUEUE.append(my_run.id)
         try:
             fs.save('mol' + str(my_run.id), request.data['mol'])
-            RUNS_QUEUE.append(my_run.id)
             executor.submit(runFeature, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
             my_run.status = 'failed'
             my_run.save()
-            print(e)
+            RUNS_QUEUE.remove(my_run.id)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runAlgos(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        res = ''
+        res = []
         if data['xgboost']['isXGBoost']:
             xg = data['xgboost']['xgboostValue']
-            res += f'Predicted_Results_XG{id}.csv'
+            res.append(f'Predicted_Results_XG{id}.csv')
             if not data['xgboost']['isAuto']:
-                Model_Training_Script.make_it_train('csv' + str(rId), xg['features'], xg['learningRate'],
+                Model_Training_Script.make_it_train('learning' + str(rId), xg['features'], xg['learningRate'],
                                                     xg['maxDepth'], xg['lambda'], xg['alpha'], xg['dropRate'], rId)
-                Prediction_Script.make_it_rain('csv' + str(rId), xg['features'], rId)
+                Prediction_Script.make_it_rain('prediction' + str(rId), xg['features'], rId)
             else:
-                ExpertMode_One.make_it_rain('csv' + str(rId), rId)
-                ExpertMode_Two.make_it_rain('csv' + str(rId), xg['numberOfFeatures'], rId)
-                ExpertMode_Prediction_Script.make_it_rain('csv' + str(rId), xg['numberOfFeatures'], rId)
+                ExpertMode_One.make_it_rain('learning' + str(rId), rId)
+                ExpertMode_Two.make_it_rain('learning' + str(rId), xg['numberOfFeatures'], rId)
+                ExpertMode_Prediction_Script.make_it_rain('prediction' + str(rId), xg['numberOfFeatures'], rId)
         if data['lasso']['isLasso']:
-            if len(res) != 0:
-                res += '@'
-            res += f'Predicted_Results_Lasso{id}.csv'
+            res.append(f'Predicted_Results_Lasso{id}.csv')
             lasso = data['lasso']['lassoValue']
             if not data['lasso']['isAuto']:
-                Lasso_Regression_Manual.make_it_rain('csv' + str(rId), lasso['features'], lasso['alpha'], rId)
-                Lasso_Regression_Manual_Prediction.make_it_rain('csv' + str(rId), lasso['features'], rId)
+                Lasso_Regression_Manual.make_it_rain('learning' + str(rId), lasso['features'], lasso['alpha'], rId)
+                Lasso_Regression_Manual_Prediction.make_it_rain('prediction' + str(rId), lasso['features'], rId)
             else:
-                Lasso_Regression_N1.make_it_rain('csv' + str(rId), rId)
-                Lasso_Regression_N2.make_it_rain('csv' + str(rId), lasso['numberOfFeatures'], rId)
-                Lasso_Regression_Prediction_Script.make_it_rain('csv' + str(rId), lasso['numberOfFeatures'], rId)
+                Lasso_Regression_N1.make_it_rain('learning' + str(rId), rId)
+                Lasso_Regression_N2.make_it_rain('learning' + str(rId), lasso['numberOfFeatures'], rId)
+                Lasso_Regression_Prediction_Script.make_it_rain('prediction' + str(rId), lasso['numberOfFeatures'], rId)
         if data['dtr']['isDTR']:
-            if len(res) != 0:
-                res += '@'
             tree = data['dtr']['dtrValue']
-            res += f'Predicted_Results_dtr{id}.csv'
+            res.append(f'Predicted_Results_dtr{id}.csv')
             if not data['dtr']['isAuto']:
-                DecisionTreeRegressor_Manual.make_it_train('csv' + str(rId), tree['features'], tree['maxDepth'],
+                DecisionTreeRegressor_Manual.make_it_train('learning' + str(rId), tree['features'], tree['maxDepth'],
                                                            tree['minSample'], tree['minSampleLeaf'],
                                                            tree['minWeightFraction'], rId)
-                DecisionTreeRegressor_Manual_Prediction.make_it_rain('csv' + str(rId), tree['features'], rId)
+                DecisionTreeRegressor_Manual_Prediction.make_it_rain('prediction' + str(rId), tree['features'], rId)
             else:
-                Decision_Tree_Improved_1.make_it_rain('csv' + str(rId), rId)
-                Decision_Tree_Improved_2.make_it_rain('csv' + str(rId), tree['numberOfFeatures'], rId)
-                Decision_Tree_Prediction_Script.make_it_rain('csv' + str(rId), tree['numberOfFeatures'], rId)
+                Decision_Tree_Improved_1.make_it_rain('learning' + str(rId), rId)
+                Decision_Tree_Improved_2.make_it_rain('learning' + str(rId), tree['numberOfFeatures'], rId)
+                Decision_Tree_Prediction_Script.make_it_rain('prediction' + str(rId), tree['numberOfFeatures'], rId)
         run = UserAlgoritmRun.objects.get(id=rId)
+        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                for f in res:
+                    if os.path.exists(os.path.join(fs.location,f )):
+                        result.write(fs.path(f), arcname=os.path.basename(f))
         run.status = 'finished'
-        run.result = res
+        run.result = zip_file_path
         run.save()
         RUNS_QUEUE.remove(rId)
+        Clear_media()
         email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
                              'noreplymolopt@gmail.com', [data['email']])
         email.send()
-        Clear_media()
 
 
 class UserRunMLAlgorithmsApiView(APIView):
@@ -375,114 +392,111 @@ class UserRunMLAlgorithmsApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = name
         my_run.save()
+        RUNS_QUEUE.append(my_run.id)
         try:
-            fs.save('csv' + str(my_run.id), request.data['csv'])
-            RUNS_QUEUE.append(my_run.id)
+            fs.save('learning' + str(my_run.id), request.data['learning'])
+            fs.save('prediction' + str(my_run.id), request.data['prediction'])
             executor.submit(runAlgos, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
-            Clear_media()
             my_run.status = 'failed'
             my_run.save()
+            RUNS_QUEUE.remove(my_run.id)
+            Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runAutoProcess(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        # runMCS(rId,data)
-        sdfMolConvert('aligned')
+        runMCS(rId,data)
+        sdfMolConvert(rId)
         runFeature(rId, data)
-        cleanCSV('csv')
+        cleanCSV(rId)
         runAlgos(rId, data)
-        run = UserAlgoritmRun.objects.get(id=rId)
-        run.status = 'finished'
-        run.save()
-        RUNS_QUEUE.remove(rId)
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                             'noreplymolopt@gmail.com', [data['email']])
-        email.send()
-        Clear_media()
+
 
 
 class UserRunAutoProcessApiView(APIView):
     def post(self, request):
-        name = 'Auto Process'
         my_run = UserAlgoritmRun()
         my_run.user_email = request.data['email']
         my_run.status = 'running'
-        my_run.algorithm_name = name
+        my_run.algorithm_name = 'Auto Process'
         my_run.save()
+        RUNS_QUEUE.append(my_run.id)
         try:
-            fs.save('ref', request.data['ref'])
-            fs.save('ligand', request.data['ligand'])
-            RUNS_QUEUE.append(my_run.id)
-            thread = threading.Thread(target=runAutoProcess(my_run.id, request.data))
-            thread.start()
+            fs.save('ref'+str(my_run.id), request.data['ref'])
+            fs.save('ligand'+str(my_run.id), request.data['ligand'])
+            fs.save('learning'+str(my_run.id),request.data['learning'])
+            executor.submit(runAutoProcess, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
-            Clear_media()
             my_run.status = 'failed'
             my_run.save()
+            RUNS_QUEUE.remove(my_run.id)
+            Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-def sdfMolConvert(file):
-    sdf = Chem.SDMolSupplier(file + ".sdf")
-    mol = Chem.Mol2Writer(open(file + ".mol2", "w"))
+def sdfMolConvert(id):
+    sdf = Chem.SDMolSupplier(f'aligned{id}.sdf')
+    mol = Chem.Mol2Writer(open(f'mol{id}.mol2', "w"))
     for mol in sdf:
         mol.write(mol)
     mol.close()
 
 
-def cleanCSV(file):
-    df = pd.read_csv(file + ".csv")
+def cleanCSV(id):
+    if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
+        df = pd.read_csv(f'FeaturesExtracted_MORDRED{id}.csv')
+        if fs.exists(f'FeaturesExtracted_RDKIT{id}.csv'):
+            df.append(pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv'))
+    else:
+        df = pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv')
     for col in df.columns:
         try:
             pd.to_numeric(df[col])
         except ValueError:
             df = df.drop(col, axis=1)
-    df.to_csv(file + ".csv", index=False)
+    df.to_csv(f'prediction{id}.csv', index=False)
 
 
 class UserGetUserRunsApiView(APIView):
-    def post(self, request):
-        print(request.data)
-        runs = UserAlgoritmRun.objects.filter(user_email=request.data['email'])
+    def post(self,request):
+        runs=UserAlgoritmRun.objects.filter(user_email=request.data['email'])
         serializer = UserAlgoritmRunSerializer(runs, many=True)
         return Response(serializer.data)
 
 
 class UserGetAllRunsApiView(APIView):
-    def get(self, request):
-        runs = UserAlgoritmRun.objects.all()
+    def post(self,request):
+        runs=UserAlgoritmRun.objects.all()
         serializer = UserAlgoritmRunSerializer(runs, many=True)
         return Response(serializer.data)
+    
+
+class UserRemoveRunApiView(APIView):
+    def post(self,request):
+        try:
+            run=UserAlgoritmRun.objects.get(id=request.data['id'])
+            run.delete()
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDownloadResultApiView(APIView):
     def post(self, request):
         rId = request.data['id']
         run = UserAlgoritmRun.objects.get(id=rId)
-        files = run.result.split('@')
-        print(files)
-
-        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-
-        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-            for f in files:
-                if os.path.exists(os.path.join(fs.location, f)):
-                    result.write(fs.path(f), arcname=os.path.basename(f))
-
         # Test the integrity of the generated ZIP file
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_obj:
+        with zipfile.ZipFile(run.result, 'r') as zip_obj:
             if zip_obj.testzip() is not None:
                 # The ZIP file is invalid or incomplete
                 return HttpResponseServerError('Generated ZIP file is invalid')
 
         # If the ZIP file is valid, create a response object to download it
-        with open(zip_file_path, 'rb') as f:
+        with open(run.result, 'rb') as f:
             response = HttpResponse(f, content_type='application/zip')
             response['Content-Disposition'] = f'attachment; filename=test.zip'
             return response
