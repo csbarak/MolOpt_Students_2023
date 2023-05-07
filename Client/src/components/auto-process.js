@@ -192,6 +192,7 @@ const AutoProcess = ({
     e.preventDefault()
     if (value === '1') {
       const formData = new FormData()
+      formData.append('email', cookies.email)
       formData.append('ref', selectedRefFile)
       formData.append('ligand', selectedLigandFile)
       formData.append('learning', bindingSelection)

@@ -97,7 +97,7 @@ const Statistics = () => {
   // Get all tasks:
   useEffect(async () => {
     return await api
-      .get('/get_all_runs/')
+      .post('/get_all_runs/')
       .then(res => {
         if (res.status >= 200 && res.status < 300) {
           //setTasks(res.data)
@@ -110,7 +110,7 @@ const Statistics = () => {
           setDataLineAlignment(CreateAlgosData(res.data, 'Alignment'))
           setDataLineFeatureExtraction(CreateAlgosData(res.data, 'Feature Extraction'))
           setDataLineMachineLearning(CreateAlgosData(res.data, 'Machine Learning'))
-          setDataLineAutoProcess([CreateAlgosData(res.data, 'Auto Process')])
+          setDataLineAutoProcess(CreateAlgosData(res.data, 'Auto Process'))
         }
       })
       .catch(err => Notification('Failed to fetch tasks', 'error').apply())
@@ -259,6 +259,7 @@ const Statistics = () => {
                     <Line type='monotone' dataKey='Pass' stroke='#82ca9d' />
                   </LineChart>
                 </ResponsiveContainer>
+                <Divider />
               </div>
             </div>
           </div>
