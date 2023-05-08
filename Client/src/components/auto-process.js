@@ -421,7 +421,7 @@ const AutoProcess = ({
             <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost') || !isXGBoostAlgo}>
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoXGBoost(!isAutoXGBoost)} checked={isAutoXGBoost} />
-                Auto Mode
+                {isAutoXGBoost ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
             <Grid
@@ -457,12 +457,6 @@ const AutoProcess = ({
               </Tooltip>
             </Grid>
 
-            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost') || !isXGBoostAlgo}>
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsAutoXGBoost(!isAutoXGBoost)} checked={!isAutoXGBoost} />
-                Manual Mode
-              </Typography>
-            </Grid>
             <Grid
               item
               xs={12}
@@ -656,7 +650,7 @@ const AutoProcess = ({
             >
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={isAutoLasso} />
-                Auto Mode
+                {isAutoLasso ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
 
@@ -691,16 +685,6 @@ const AutoProcess = ({
                   onChange={e => setNumberOfFeaturesLasso(e.target.value)}
                 />
               </Tooltip>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression') || !isLasso}
-            >
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={!isAutoLasso} />
-                Manual Mode
-              </Typography>
             </Grid>
 
             <Grid
@@ -765,7 +749,7 @@ const AutoProcess = ({
             >
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={isAutoDTR} />
-                Auto Mode
+                {isAutoDTR ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
             <Grid
@@ -796,28 +780,6 @@ const AutoProcess = ({
                   type='text'
                   onChange={e => setDTRNumFeatures(e.target.value)}
                 />
-              </Tooltip>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isDTR}
-            >
-              <Tooltip
-                title={
-                  <Typography fontSize={15} variant='body1' color={'#fff'}>
-                    Step size at each iteration while moving toward a minimum of the loss function; smaller values
-                    result in slower learning and more accurate models.
-                  </Typography>
-                }
-                TransitionComponent={Fade}
-                placement='left'
-                arrow
-              >
-                <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                  <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={!isAutoDTR} />
-                  Manual Mode
-                </Typography>
               </Tooltip>
             </Grid>
 
