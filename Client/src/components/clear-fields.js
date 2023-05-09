@@ -1,7 +1,5 @@
 export const clearFields = (
-  isXGBoostAlgo,
-  isLasso,
-  isDTR,
+  multipleAlgoSelection,
   setXGBoostValues,
   setDTRValues,
   setLassoValues,
@@ -9,7 +7,7 @@ export const clearFields = (
   setLassoSelection,
   setDtrSelection
 ) => {
-  if (!isXGBoostAlgo) {
+  if (!multipleAlgoSelection.includes('XGBoost')) {
     setXGBoostValues({
       learningRate: '',
       lambda: '',
@@ -19,11 +17,11 @@ export const clearFields = (
     })
     setXgboostSelection([])
   }
-  if (!isLasso) {
+  if (!multipleAlgoSelection.includes('Lasso Regression')) {
     setLassoValues('')
     setLassoSelection([])
   }
-  if (!isDTR) {
+  if (!multipleAlgoSelection.includes('Decision Tree Regressor')) {
     setDTRValues({
       maxDepth: '',
       minSample: '',
@@ -58,9 +56,7 @@ export const clearOnNavi = (
 }
 
 export const clearAll = (
-  isXGBoostAlgo,
-  isLasso,
-  isDTR,
+  multipleAlgoSelection,
   setXGBoostValues,
   setDTRValues,
   setLassoValues,
@@ -70,22 +66,14 @@ export const clearAll = (
   setAuto,
   setIsRDKit,
   setIsMordred,
-  setIsXGBoostAlgo,
-  setIsDTR,
-  setIsLasso,
   setBindingSelection
 ) => {
   setAuto(false)
   setIsRDKit(false)
   setIsMordred(false)
-  setIsXGBoostAlgo(false)
-  setIsDTR(false)
-  setIsLasso(false)
   setBindingSelection(null)
   clearFields(
-    isXGBoostAlgo,
-    isLasso,
-    isDTR,
+    multipleAlgoSelection,
     setXGBoostValues,
     setDTRValues,
     setLassoValues,

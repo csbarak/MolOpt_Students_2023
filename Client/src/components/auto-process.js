@@ -41,9 +41,6 @@ const AutoProcess = ({
   const [auto, setAuto] = useState(false)
   const [isRDKit, setIsRDKit] = useState(false)
   const [isMordred, setIsMordred] = useState(false)
-  const [isXGBoostAlgo, setIsXGBoostAlgo] = useState(false)
-  const [isDTR, setIsDTR] = useState(false)
-  const [isLasso, setIsLasso] = useState(false)
   const [isAutoXGBoost, setIsAutoXGBoost] = useState(false)
   const [isAutoDTR, setIsAutoDTR] = useState(false)
   const [isAutoLasso, setIsAutoLasso] = useState(false)
@@ -75,9 +72,7 @@ const AutoProcess = ({
 
   useEffect(() => {
     return clearFields(
-      isXGBoostAlgo,
-      isLasso,
-      isDTR,
+      multipleAlgoSelection,
       setXGBoostValues,
       setDTRValues,
       setLassoValues,
@@ -86,13 +81,11 @@ const AutoProcess = ({
       setDtrSelection,
       setNumberOfFeaturesLasso
     )
-  }, [isXGBoostAlgo, isLasso, isDTR])
+  }, [multipleAlgoSelection])
 
   useEffect(() => {
     return clearAll(
-      isXGBoostAlgo,
-      isLasso,
-      isDTR,
+      multipleAlgoSelection,
       setXGBoostValues,
       setDTRValues,
       setLassoValues,
@@ -102,9 +95,6 @@ const AutoProcess = ({
       setAuto,
       setIsRDKit,
       setIsMordred,
-      setIsXGBoostAlgo,
-      setIsDTR,
-      setIsLasso,
       setBindingSelection,
       setMultipleAlgoSelection,
       setNumberOfFeaturesLasso
@@ -133,7 +123,7 @@ const AutoProcess = ({
   }
 
   const validateFields = () => {
-    if (isXGBoostAlgo) {
+    if (multipleAlgoSelection.includes('XGBoost')) {
       if (isAutoXGBoost && (xgboostNumFeatures === '' || !xgboostNumFeatures.match('^(1?[0-9]|20)$'))) {
         return false
       }
@@ -144,7 +134,7 @@ const AutoProcess = ({
         return false
       }
     }
-    if (isDTR) {
+    if (multipleAlgoSelection.includes('Decision Tree Regressor')) {
       if (isAutoDTR && dtrNumFeatures === '') {
         return false
       }
@@ -155,7 +145,7 @@ const AutoProcess = ({
         return false
       }
     }
-    if (isLasso) {
+    if (multipleAlgoSelection.includes('Lasso Regression')) {
       if (isAutoLasso && (numberOfFeaturesLasso === '' || !numberOfFeaturesLasso.match(/^(3|4|5|6|7|8|9|10)$/))) {
         return false
       }
@@ -197,22 +187,22 @@ const AutoProcess = ({
       formData.append('ligand', selectedLigandFile)
       formData.append('learning', bindingSelection)
       formData.append('xgboost', {
-        isXGBoost: isXGBoostAlgo,
+        isXGBoost: multipleAlgoSelection.includes('XGBoost'),
         isAuto: isAutoXGBoost,
         xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
       })
       formData.append('dtr', {
-        isDTR: isDTR,
+        isDTR: multipleAlgoSelection.includes('Decision Tree Regressor'),
         isAuto: isAutoDTR,
         dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
       })
       formData.append('lasso', {
-        isLasso: isLasso,
+        isLasso: multipleAlgoSelection.includes('Lasso Regression'),
         isAuto: isAutoLasso,
         lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
       })
       console.log({
-        isXGBoost: isXGBoostAlgo,
+        isXGBoost: multipleAlgoSelection.includes('XGBoost'),
         isAuto: isAutoXGBoost,
         xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
       })
@@ -251,17 +241,17 @@ const AutoProcess = ({
     formData.append('prediction', selectedPredictionFile)
     formData.append('email', cookies.email)
     formData.append('xgboost', {
-      isXGBoost: isXGBoostAlgo,
+      isXGBoost: multipleAlgoSelection.includes('XGBoost'),
       isAuto: isAutoXGBoost,
       xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
     })
     formData.append('dtr', {
-      isDTR: isDTR,
+      isDTR: multipleAlgoSelection.includes('Decision Tree Regressor'),
       isAuto: isAutoDTR,
       dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
     })
     formData.append('lasso', {
-      isLasso: isLasso,
+      isLasso: multipleAlgoSelection.includes('Lasso Regression'),
       isAuto: isAutoLasso,
       lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
     })
@@ -282,7 +272,9 @@ const AutoProcess = ({
       ? !(
           (isRDKit || isMordred) &&
           bindingSelection !== null &&
-          (isXGBoostAlgo || isDTR || isLasso) &&
+          (multipleAlgoSelection.includes('XGBoost') ||
+            multipleAlgoSelection.includes('Decision Tree Regressor') ||
+            multipleAlgoSelection.includes('Lasso Regression')) &&
           selectedRefFile !== null &&
           selectedLigandFile !== null &&
           validateFields() &&
@@ -291,7 +283,9 @@ const AutoProcess = ({
       : value === '2'
       ? !((isRDKit || isMordred) && selectedAlignmentFile !== null)
       : !(
-          (isXGBoostAlgo || isDTR || isLasso) &&
+          (multipleAlgoSelection.includes('XGBoost') ||
+            multipleAlgoSelection.includes('Decision Tree Regressor') ||
+            multipleAlgoSelection.includes('Lasso Regression')) &&
           selectedDatasetFile !== null &&
           selectedPredictionFile !== null &&
           validateFields() &&
@@ -412,24 +406,18 @@ const AutoProcess = ({
             </Grid>
 
             <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost')}>
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsXGBoostAlgo(!isXGBoostAlgo)} checked={isXGBoostAlgo} />
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 18 }}>
                 XGBoost
               </Typography>
             </Grid>
 
-            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost') || !isXGBoostAlgo}>
+            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('XGBoost')}>
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoXGBoost(!isAutoXGBoost)} checked={isAutoXGBoost} />
                 {isAutoXGBoost ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || !isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -457,12 +445,7 @@ const AutoProcess = ({
               </Tooltip>
             </Grid>
 
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -491,12 +474,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -522,12 +500,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -554,12 +527,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -586,12 +554,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -617,12 +580,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isXGBoostAlgo || !multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('XGBoost') || isAutoXGBoost}>
               <Autocomplete
                 multiple={true}
                 value={xgboostSelection}
@@ -638,28 +596,18 @@ const AutoProcess = ({
               <Divider sx={{ marginBottom: 0 }} />
             </Grid>
             <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression')}>
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsLasso(!isLasso)} checked={isLasso} />
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 18 }}>
                 Lasso Regression
               </Typography>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression') || !isLasso}
-            >
+            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('Lasso Regression')}>
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoLasso(!isAutoLasso)} checked={isAutoLasso} />
                 {isAutoLasso ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
 
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Lasso Regression') || !isAutoLasso}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -687,12 +635,7 @@ const AutoProcess = ({
               </Tooltip>
             </Grid>
 
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -717,12 +660,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}>
               <Autocomplete
                 multiple={true}
                 value={lassoSelection}
@@ -737,27 +675,17 @@ const AutoProcess = ({
               <Divider sx={{ marginBottom: 0 }} />
             </Grid>
             <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor')}>
-              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
-                <Switch onChange={() => setIsDTR(!isDTR)} checked={isDTR} />
+              <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 18 }}>
                 Decision Tree Regressor
               </Typography>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isDTR}
-            >
+            <Grid item xs={12} hidden={value === '2' || !multipleAlgoSelection.includes('Decision Tree Regressor')}>
               <Typography variant='body2' sx={{ fontWeight: 600, textAlign: 'center', fontSize: 16 }}>
                 <Switch onChange={() => setIsAutoDTR(!isAutoDTR)} checked={isAutoDTR} />
                 {isAutoDTR ? 'Auto Mode' : 'Manual Mode'}
               </Typography>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || !isAutoDTR}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -783,12 +711,7 @@ const AutoProcess = ({
               </Tooltip>
             </Grid>
 
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -814,12 +737,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -845,12 +763,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -876,12 +789,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}>
               <Tooltip
                 title={
                   <Typography fontSize={15} variant='body1' color={'#fff'}>
@@ -910,12 +818,7 @@ const AutoProcess = ({
                 />
               </Tooltip>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              hidden={!isDTR || !multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}
-            >
+            <Grid item xs={12} sm={6} hidden={!multipleAlgoSelection.includes('Decision Tree Regressor') || isAutoDTR}>
               <Autocomplete
                 multiple={true}
                 value={dtrSelection}
@@ -942,7 +845,9 @@ const AutoProcess = ({
                 ? !(
                     (isRDKit || isMordred) &&
                     bindingSelection !== null &&
-                    (isXGBoostAlgo || isDTR || isLasso) &&
+                    (multipleAlgoSelection.includes('XGBoost') ||
+                      multipleAlgoSelection.includes('Decision Tree Regressor') ||
+                      multipleAlgoSelection.includes('Lasso Regression')) &&
                     selectedRefFile !== null &&
                     selectedLigandFile !== null &&
                     validateFields() &&
@@ -951,7 +856,9 @@ const AutoProcess = ({
                 : value === '2'
                 ? !((isRDKit || isMordred) && selectedAlignmentFile !== null)
                 : !(
-                    (isXGBoostAlgo || isDTR || isLasso) &&
+                    (multipleAlgoSelection.includes('XGBoost') ||
+                      multipleAlgoSelection.includes('Decision Tree Regressor') ||
+                      multipleAlgoSelection.includes('Lasso Regression')) &&
                     selectedDatasetFile !== null &&
                     selectedPredictionFile !== null &&
                     validateFields() &&
