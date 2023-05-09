@@ -41,9 +41,9 @@ const AutoProcess = ({
   const [auto, setAuto] = useState(false)
   const [isRDKit, setIsRDKit] = useState(false)
   const [isMordred, setIsMordred] = useState(false)
-  const [isAutoXGBoost, setIsAutoXGBoost] = useState(false)
-  const [isAutoDTR, setIsAutoDTR] = useState(false)
-  const [isAutoLasso, setIsAutoLasso] = useState(false)
+  const [isAutoXGBoost, setIsAutoXGBoost] = useState(true)
+  const [isAutoDTR, setIsAutoDTR] = useState(true)
+  const [isAutoLasso, setIsAutoLasso] = useState(true)
   const [xgboostValue, setXGBoostValues] = useState({
     numberOfFeatures: '',
     features: '',
@@ -186,26 +186,36 @@ const AutoProcess = ({
       formData.append('ref', selectedRefFile)
       formData.append('ligand', selectedLigandFile)
       formData.append('learning', bindingSelection)
-      formData.append('xgboost', {
-        isXGBoost: multipleAlgoSelection.includes('XGBoost'),
-        isAuto: isAutoXGBoost,
-        xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
-      })
-      formData.append('dtr', {
-        isDTR: multipleAlgoSelection.includes('Decision Tree Regressor'),
-        isAuto: isAutoDTR,
-        dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
-      })
-      formData.append('lasso', {
-        isLasso: multipleAlgoSelection.includes('Lasso Regression'),
-        isAuto: isAutoLasso,
-        lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
-      })
-      console.log({
-        isXGBoost: multipleAlgoSelection.includes('XGBoost'),
-        isAuto: isAutoXGBoost,
-        xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
-      })
+      //// xgboost
+      formData.append('xgboost_isXGBoost', multipleAlgoSelection.includes('XGBoost'))
+      formData.append('xgboost_isAuto', isAutoXGBoost)
+      formData.append('xgboost_numberOfFeatures', xgboostValue.numberOfFeatures)
+      formData.append('xgboost_features', xgboostValue.features)
+      formData.append('xgboost_learningRate', xgboostValue.learningRate)
+      formData.append('xgboost_lambda', xgboostValue.lambda)
+      formData.append('xgboost_dropRate', xgboostValue.dropRate)
+      formData.append('xgboost_maxDepth', xgboostValue.maxDepth)
+      formData.append('xgboost_alpha', xgboostValue.alpha)
+      formData.append('xgboost_autoNumberOfFeatures', xgboostNumFeatures)
+      formData.append('xgboost_autoFeatures', xgboostSelection)
+  
+      //// dtr
+      formData.append('dtr_isDTR', multipleAlgoSelection.includes('Decision Tree Regressor'))
+      formData.append('dtr_isAuto', isAutoDTR)
+      formData.append('dtr_maxDepth', dtrValue.maxDepth)
+      formData.append('dtr_minSample', dtrValue.minSample)
+      formData.append('dtr_minSampleLeaf', dtrValue.minSampleLeaf)
+      formData.append('dtr_minWeightFraction', dtrValue.minWeightFraction)
+      formData.append('dtr_autoNumberOfFeatures', dtrNumFeatures)
+      formData.append('dtr_autoFeatures', dtrSelection)
+
+      //// lasso
+      formData.append('lasso_isLasso', multipleAlgoSelection.includes('Lasso Regression'))
+      formData.append('lasso_isAuto', isAutoLasso)
+      formData.append('lasso_alphaValue', lassoValue)
+      formData.append('lasso_autoNumberOfFeatures', numberOfFeaturesLasso)
+      formData.append('lasso_autoFeatures', lassoSelection)
+      
       return await api
         .post('run_auto_process/', formData)
         .then(res => {
@@ -240,21 +250,36 @@ const AutoProcess = ({
     formData.append('learning', selectedDatasetFile)
     formData.append('prediction', selectedPredictionFile)
     formData.append('email', cookies.email)
-    formData.append('xgboost', {
-      isXGBoost: multipleAlgoSelection.includes('XGBoost'),
-      isAuto: isAutoXGBoost,
-      xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
-    })
-    formData.append('dtr', {
-      isDTR: multipleAlgoSelection.includes('Decision Tree Regressor'),
-      isAuto: isAutoDTR,
-      dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
-    })
-    formData.append('lasso', {
-      isLasso: multipleAlgoSelection.includes('Lasso Regression'),
-      isAuto: isAutoLasso,
-      lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
-    })
+    //// xgboost
+    formData.append('xgboost_isXGBoost', multipleAlgoSelection.includes('XGBoost'))
+    formData.append('xgboost_isAuto', isAutoXGBoost)
+    formData.append('xgboost_numberOfFeatures', xgboostValue.numberOfFeatures)
+    formData.append('xgboost_features', xgboostValue.features)
+    formData.append('xgboost_learningRate', xgboostValue.learningRate)
+    formData.append('xgboost_lambda', xgboostValue.lambda)
+    formData.append('xgboost_dropRate', xgboostValue.dropRate)
+    formData.append('xgboost_maxDepth', xgboostValue.maxDepth)
+    formData.append('xgboost_alpha', xgboostValue.alpha)
+    formData.append('xgboost_autoNumberOfFeatures', xgboostNumFeatures)
+    formData.append('xgboost_autoFeatures', xgboostSelection)
+
+    //// dtr
+    formData.append('dtr_isDTR', multipleAlgoSelection.includes('Decision Tree Regressor'))
+    formData.append('dtr_isAuto', isAutoDTR)
+    formData.append('dtr_maxDepth', dtrValue.maxDepth)
+    formData.append('dtr_minSample', dtrValue.minSample)
+    formData.append('dtr_minSampleLeaf', dtrValue.minSampleLeaf)
+    formData.append('dtr_minWeightFraction', dtrValue.minWeightFraction)
+    formData.append('dtr_autoNumberOfFeatures', dtrNumFeatures)
+    formData.append('dtr_autoFeatures', dtrSelection)
+
+    //// lasso
+    formData.append('lasso_isLasso', multipleAlgoSelection.includes('Lasso Regression'))
+    formData.append('lasso_isAuto', isAutoLasso)
+    formData.append('lasso_alphaValue', lassoValue)
+    formData.append('lasso_autoNumberOfFeatures', numberOfFeaturesLasso)
+    formData.append('lasso_autoFeatures', lassoSelection)
+
     return await api
       .post('run_ML_algorithms/', formData)
       .then(res => {
