@@ -45,8 +45,8 @@ const AutoProcess = ({
   const [isAutoDTR, setIsAutoDTR] = useState(true)
   const [isAutoLasso, setIsAutoLasso] = useState(true)
   const [xgboostValue, setXGBoostValues] = useState({
-    numberOfFeatures: '',
-    features: '',
+    // numberOfFeatures: '',
+    // features: '',
     learningRate: '',
     lambda: '',
     dropRate: '',
@@ -189,15 +189,13 @@ const AutoProcess = ({
       //// xgboost
       formData.append('xgboost_isXGBoost', multipleAlgoSelection.includes('XGBoost'))
       formData.append('xgboost_isAuto', isAutoXGBoost)
-      formData.append('xgboost_numberOfFeatures', xgboostValue.numberOfFeatures)
-      formData.append('xgboost_features', xgboostValue.features)
+      formData.append('xgboost_numberOfFeatures', xgboostNumFeatures)
+      formData.append('xgboost_features', xgboostSelection)
       formData.append('xgboost_learningRate', xgboostValue.learningRate)
       formData.append('xgboost_lambda', xgboostValue.lambda)
       formData.append('xgboost_dropRate', xgboostValue.dropRate)
       formData.append('xgboost_maxDepth', xgboostValue.maxDepth)
       formData.append('xgboost_alpha', xgboostValue.alpha)
-      formData.append('xgboost_autoNumberOfFeatures', xgboostNumFeatures)
-      formData.append('xgboost_autoFeatures', xgboostSelection)
   
       //// dtr
       formData.append('dtr_isDTR', multipleAlgoSelection.includes('Decision Tree Regressor'))
@@ -253,15 +251,13 @@ const AutoProcess = ({
     //// xgboost
     formData.append('xgboost_isXGBoost', multipleAlgoSelection.includes('XGBoost'))
     formData.append('xgboost_isAuto', isAutoXGBoost)
-    formData.append('xgboost_numberOfFeatures', xgboostValue.numberOfFeatures)
-    formData.append('xgboost_features', xgboostValue.features)
+    formData.append('xgboost_numberOfFeatures', xgboostNumFeatures)
+    formData.append('xgboost_features', xgboostSelection)
     formData.append('xgboost_learningRate', xgboostValue.learningRate)
     formData.append('xgboost_lambda', xgboostValue.lambda)
     formData.append('xgboost_dropRate', xgboostValue.dropRate)
     formData.append('xgboost_maxDepth', xgboostValue.maxDepth)
     formData.append('xgboost_alpha', xgboostValue.alpha)
-    formData.append('xgboost_autoNumberOfFeatures', xgboostNumFeatures)
-    formData.append('xgboost_autoFeatures', xgboostSelection)
 
     //// dtr
     formData.append('dtr_isDTR', multipleAlgoSelection.includes('Decision Tree Regressor'))
