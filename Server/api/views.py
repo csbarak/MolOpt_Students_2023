@@ -49,7 +49,7 @@ class ForgotPasswordView(APIView):
         user = User.objects.get(email=email)
         if user is not None:
             try:
-                send_activation_email(user, site=None)
+                send_activation_email(user)
                 return Response(status=status.HTTP_200_OK)
             except Exception as e:
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message":str(e)})
