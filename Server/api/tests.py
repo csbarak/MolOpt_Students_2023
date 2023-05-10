@@ -2,14 +2,15 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-#import logging
+# import logging
 # from api import views
 from .models import UserProfile as User
 from .models import UserAlgoritmRun
 
-### ======================== TEST VARIABLES ======================== ### 
+### ======================== TEST VARIABLES ======================== ###
 api_path = '/api/'      # Full path: 'http://localhost:8000/api/'
 ### ================================================================ ###
+
 
 class RegisterTestCase(TestCase):
     def setUp(self):
@@ -27,7 +28,8 @@ class RegisterTestCase(TestCase):
                 'last_name': self.last_name, 'affiliation': self.affiliation, 'position': self.position}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.count(), 1)   # check that the new user has been created
+        # check that the new user has been created
+        self.assertEqual(User.objects.count(), 1)
 
 
 class LoginTestCase(TestCase):
@@ -39,7 +41,8 @@ class LoginTestCase(TestCase):
         self.affiliation = 'None'
         self.position = 'None'
         self.password = 'Password123'
-        self.user = User.objects.create_user(self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
+        self.user = User.objects.create_user(
+            self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
 
     def test_successful_login(self):
         url = api_path+'login/'
@@ -51,11 +54,13 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.data['token'], token.key)
 
     def test_invalid_username(self):
-        response = self.client.post(reverse('login'), {'username': 'invalid', 'password': self.password})
+        response = self.client.post(
+            reverse('login'), {'username': 'invalid', 'password': self.password})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_password(self):
-        response = self.client.post(reverse('login'), {'username': self.email, 'password': 'invalid'})
+        response = self.client.post(
+            reverse('login'), {'username': self.email, 'password': 'invalid'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -68,12 +73,48 @@ class LogoutTestCase(TestCase):
         self.affiliation = 'None'
         self.position = 'None'
         self.password = 'Password123'
-        self.user = User.objects.create_user(self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
+        self.user = User.objects.create_user(
+            self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
 
     def test_successful_logout(self):
         url = api_path+'logout/'
         self.client.login(username=self.email, password=self.password)
         response = self.client.post(url, {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class UpdateUserTestCase(TestCase):
+    def setUp(self):
+        # registering a fake user for the test
+        self.email = 'testuser@gmail.com'
+        self.first_name = 'testing'
+        self.last_name = 'user'
+        self.affiliation = 'None'
+        self.position = 'None'
+        self.password = 'Password123'
+        self.user = User.objects.create_user(
+            self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
+
+    def test_successful_update(self):
+        url = api_path+'update_user_info/'
+        self.client.login(username=self.email, password=self.password)
+        response = self.client.post(url, {
+            'email': self.email,
+            'first_name': 'The',
+            'last_name': 'User',
+            'affiliation': 'Is',
+            'position': 'Updated',
+            'password': 'Successfully123',
+        }, format='json')
+
+        user = self.client.get_user(email=self.email)
+        # validate changes
+        self.assertEqual(user['first_name'], 'The')
+        self.assertEqual(user['last_name'], 'User')
+        self.assertEqual(user['affiliation'], 'Is')
+        self.assertEqual(user['position'], 'Updated')
+        response = self.client.login(
+            username=self.email, password='Successfully123')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -87,24 +128,24 @@ class AuthenticatedViewTestCase(TestCase):
         self.affiliation = 'None'
         self.position = 'None'
         self.password = 'Password123'
-        self.user = User.objects.create_user(self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
+        self.user = User.objects.create_user(
+            self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
         self.client.login(username=self.email, password=self.password)
-
 
     def test_get_user(self):
         url = reverse('get_user')
         response = self.client.post(url, {'email': self.email})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # validate user gotten
-        self.assertEqual(response.json()['id'], 1)  # only one user was created for this test
+        # only one user was created for this test
+        self.assertEqual(response.json()['id'], 1)
         self.assertEqual(response.json()['email'], self.email)
         self.assertEqual(response.json()['first_name'], self.first_name)
         self.assertEqual(response.json()['last_name'], self.last_name)
         self.assertEqual(response.json()['affiliation'], self.affiliation)
         self.assertEqual(response.json()['position'], self.position)
         self.assertEqual(response.json()['is_staff'], False)
-    
 
     def test_get_user_tasks(self):
         # create a task
@@ -122,13 +163,13 @@ class AuthenticatedViewTestCase(TestCase):
         self.assertEqual(len(response.json()), 1)
 
         # validate task gotten
-        self.assertEqual(response.json()[0]['id'], 1)  # only one task was created for this test
+        # only one task was created for this test
+        self.assertEqual(response.json()[0]['id'], 1)
         self.assertEqual(response.json()[0]['user_email'], self.email)
         self.assertEqual(response.json()[0]['algorithm_name'], algo_name)
         self.assertEqual(response.json()[0]['status'], algo_status)
         # self.assertEqual(response.json()[0]['time'], '')
         # self.assertEqual(response.json()[0]['result'], '')
-    
 
     def test_get_permission_level(self):
         url = reverse('check_permission')
@@ -136,16 +177,14 @@ class AuthenticatedViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['is_admin'], False)
 
+    # TODO: Needs to add an admin user for these test!
+    # ================================================
 
-    ## TODO: Needs to add an admin user for these test!
-    ## ================================================
-    
     # def test_get_all_users(self):
     #     url = reverse('get_all_users')
     #     response = self.client.post(url, {'email': self.email})
     #     self.assertEqual(response.status_code, 200)
     #     self.assertEqual(len(response.json()), 1)
-    
 
     # def test_get_all_tasks(self):
     #     task = Task.objects.create(title='Test Task', description='Test Description', assignee=self.user)

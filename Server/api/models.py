@@ -1,4 +1,3 @@
-import json
 from django.db import models
 # from djongo import models as djmodels
 from django.contrib.auth.models import AbstractBaseUser
@@ -59,7 +58,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         """Retrieve the full name of the user"""
         return self.first_name + ' ' + self.last_name
-    
 
     def get_short_name(self):
         """Retrieve the full name of the user"""
@@ -78,11 +76,12 @@ class UserAlgoritmRun(models.Model):
     #     settings.AUTH_USER_MODEL,
     #     on_delete=models.CASCADE
     # )
-    user_email=models.EmailField(max_length=255)
+    user_email = models.EmailField(max_length=255)
     algorithm_name = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     time = models.DateTimeField(auto_now_add=True)
-    result=models.CharField(max_length=255)
+    result = models.CharField(max_length=255)
+
     def __str__(self):
         """Return the model as a string"""
         return 'Algorithm ' + self.algorithm_id + ' created on ' + self.created_on
