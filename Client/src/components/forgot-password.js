@@ -3,8 +3,11 @@ import { Button, TextField, Dialog, DialogActions, DialogContent, DialogContentT
 import api from './api'
 import Notification from './notification'
 import { useCookies } from 'react-cookie'
+import { useRouter } from 'next/router'
 
 const ForgotPassword = ({ value, setValue }) => {
+  const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [cookies, setCookie, removeCookie] = useCookies()
 
@@ -17,11 +20,13 @@ const ForgotPassword = ({ value, setValue }) => {
       .post('reset_password/', { email: email })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          return Notification('Password reset successfully , please check your email.', 'success').apply()
+          return Notification('Password reset successfully , please check your email.', 'success', () => {
+            router.push('/reset-password')
+          }).apply()
         }
       })
       .catch(err => {
-        return Notification('Password reset failed , please check email is exists and valid.', 'error').apply()
+        return Notification('Password reset failed , please check that email is exists and valid.', 'error').apply()
       })
   }
 
