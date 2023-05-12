@@ -83,39 +83,49 @@ class LogoutTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-# class UpdateUserTestCase(TestCase):
-#     def setUp(self):
-#         # registering a fake user for the test
-#         self.email = 'testuser@gmail.com'
-#         self.first_name = 'testing'
-#         self.last_name = 'user'
-#         self.affiliation = 'None'
-#         self.position = 'None'
-#         self.password = 'Password123'
-#         self.user = User.objects.create_user(
-#             self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
+class UpdateUserTestCase(TestCase):
+    def setUp(self):
+        # registering a fake user for the test
+        self.email = 'testuser@gmail.com'
+        self.first_name = 'testing'
+        self.last_name = 'user'
+        self.affiliation = 'None'
+        self.position = 'None'
+        self.password = 'Password123'
+        self.user = User.objects.create_user(
+            self.email, self.first_name, self.last_name, self.affiliation, self.position, self.password)
 
-#     def test_successful_update(self):
-#         url = api_path+'update_user_info/'
-#         self.client.login(username=self.email, password=self.password)
-#         response = self.client.post(url, {
-#             'email': self.email,
-#             'first_name': 'The',
-#             'last_name': 'User',
-#             'affiliation': 'Is',
-#             'position': 'Updated',
-#             'password': 'Successfully123',
-#         }, format='json')
+    def test_successful_update(self):
+        url = api_path+'update_user_info/'
+        self.client.login(username=self.email, password=self.password)
+        response = self.client.post(url, {
+            'email': self.email,
+            'first_name': 'The',
+            'last_name': 'User',
+            'affiliation': 'Is',
+            'position': 'Updated',
+            'password': 'Successfully123',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # validate user info updated
+        # get_user and login functions must work for this test!
+        
+        # validate login after update
+        response = self.client.login(
+            username=self.email, password='Successfully123')
+        self.assertEqual(response, True)
 
-#         user = self.client.get_user(email=self.email)
-#         # validate changes
-#         self.assertEqual(user['first_name'], 'The')
-#         self.assertEqual(user['last_name'], 'User')
-#         self.assertEqual(user['affiliation'], 'Is')
-#         self.assertEqual(user['position'], 'Updated')
-#         response = self.client.login(
-#             username=self.email, password='Successfully123')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # validate changes
+        url = reverse('get_user')
+        response = self.client.post(url, {'email': self.email})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.json()['email'], self.email)
+        self.assertEqual(response.json()['first_name'], 'The')
+        self.assertEqual(response.json()['last_name'], 'User')
+        self.assertEqual(response.json()['affiliation'], 'Is')
+        self.assertEqual(response.json()['position'], 'Updated')
 
 
 # Getters tests
