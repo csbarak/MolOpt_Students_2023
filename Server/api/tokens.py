@@ -24,7 +24,7 @@ def send_activation_email(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     user = user
 
-    url = f"https://{ domain }/password_reset_confirm/uidb64={uid}/token={token}"
+    url = f"http://{ domain }/reset-password?uidb64={uid}&token={token}"
     message = f'''Hello {name.title()},
             <br><br>We received a request to reset the password for your account for this email address.
             <br>To initiate the password reset process for your account, click <a href='{url}'>HERE</a>

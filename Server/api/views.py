@@ -78,7 +78,7 @@ class ResetPasswordConfirmView(APIView):
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message":str(e)})
 
 class UpdateUserView(APIView):
-    # permission_classes = ([IsAuthenticated])
+    permission_classes = ([IsAuthenticated])
 
     def post(self, request):
         try:

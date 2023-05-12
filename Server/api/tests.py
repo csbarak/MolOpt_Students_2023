@@ -106,16 +106,26 @@ class UpdateUserTestCase(TestCase):
             'position': 'Updated',
             'password': 'Successfully123',
         }, format='json')
-
-        user = self.client.get_user(email=self.email)
-        # validate changes
-        self.assertEqual(user['first_name'], 'The')
-        self.assertEqual(user['last_name'], 'User')
-        self.assertEqual(user['affiliation'], 'Is')
-        self.assertEqual(user['position'], 'Updated')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # validate user info updated
+        # get_user and login functions must work for this test!
+        
+        # validate login after update
         response = self.client.login(
             username=self.email, password='Successfully123')
+        self.assertEqual(response, True)
+
+        # validate changes
+        url = reverse('get_user')
+        response = self.client.post(url, {'email': self.email})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.json()['email'], self.email)
+        self.assertEqual(response.json()['first_name'], 'The')
+        self.assertEqual(response.json()['last_name'], 'User')
+        self.assertEqual(response.json()['affiliation'], 'Is')
+        self.assertEqual(response.json()['position'], 'Updated')
 
 
 # Getters tests
