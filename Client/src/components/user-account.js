@@ -13,6 +13,8 @@ import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
 import { useEffect } from 'react'
 import api from './api'
+import Notification from './notification'
+import { useRouter } from 'next/router'
 import { useCookies } from 'react-cookie'
 
 const TabAccount = () => {
@@ -26,6 +28,8 @@ const TabAccount = () => {
   })
   const [cookies, setCookie, removeCookie] = useCookies()
   const [disabled, setDisabled] = useState(true)
+
+  const router = useRouter()
 
   const body = {
     email: cookies.email
@@ -54,15 +58,15 @@ const TabAccount = () => {
   const handleSubmit = async e => {
     e.preventDefault()
     return await api
-      .post(`users/${info.email}`, info, { headers: { Authorization: `Token ${cookies.token}` } })
+      .post(`/update_user_info/`, info, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          return Notification('User info updated', 'success').apply()
+          return Notification('User info updated', 'success', () => {
+            router.push('/dashboard')
+          }).apply()
         }
       })
-      .catch(err => {
-        return Notification('Failed to update user info', 'error').apply()
-      })
+      .catch(err => Notification('Failed to update user info', 'error').apply())
   }
 
   const setAndValidate = (e, type) => {
