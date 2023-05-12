@@ -20,9 +20,7 @@ const ForgotPassword = ({ value, setValue }) => {
       .post('reset_password/', { email: email })
       .then(res => {
         if (200 <= res.status && res.status < 300) {
-          return Notification('Password reset successfully , please check your email.', 'success', () => {
-            router.push('/reset-password')
-          }).apply()
+          return Notification('Password reset successfully , please check your email.', 'success').apply()
         }
       })
       .catch(err => {

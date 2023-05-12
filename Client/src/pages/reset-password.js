@@ -1,5 +1,5 @@
 // ** React Imports
-import { React, useState } from 'react'
+import { React, useState, useEffect} from 'react'
 // ** Next Imports
 import { useRouter } from 'next/router'
 // ** Axios Imports
@@ -38,8 +38,10 @@ const ResetPasswordPage = () => {
     confirm_new_password: '',
   })
 
+  // ** URL values
+  const { uidb64, token } = router.query;
+
   const errors = {
-    token: '',
     new_password: `
     \u2022\tPassword must be at least 8 characters long\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0
     \u2022\tPassword must contain at least 1 lowercase characters
@@ -48,8 +50,7 @@ const ResetPasswordPage = () => {
   }
 
   const validateFields = () => {
-    return (values.token !== '' &&
-            values.new_password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/) &&
+    return (values.new_password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/) &&
             values.confirm_new_password === values.new_password)
   }
 
@@ -60,17 +61,13 @@ const ResetPasswordPage = () => {
   const handleSetNewPassword = async e => {
     e.preventDefault()
 
-    if (values.token === '') {
-      // This should never happen - just for extra verification!
-      return Notification('Token must be filled in - Check your email for the token', 'error').apply()
-    }
-
     const body = {
-      token: values.token,
+      token: token,
+      uidb64: uidb64,
       password: values.new_password
     }
     return await api
-      .post('reset-password/', body)
+      .post('reset_password_confirm/', body)
       .then(res => {
         if (200 <= res.status && res.status < 300) {
           return Notification('Password reset was done successfully', 'success', () => {
@@ -164,20 +161,6 @@ const ResetPasswordPage = () => {
             <Typography variant='body1' sx={{ fontSize: '25px', mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 Reset Password
             </Typography>
-            <TextField
-              autoFocus
-              fullWidth
-              required
-              id='Token'
-              label='Token'
-              value={values.token}
-              sx={{ marginBottom: 4 }}
-              onChange={handleChange('token')}
-              error={values.token === ''}
-              helperText={
-                values.token === '' ? errors.token : null
-              }
-            />
             <TextField
               fullWidth
               required
