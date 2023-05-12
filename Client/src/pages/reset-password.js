@@ -1,5 +1,5 @@
 // ** React Imports
-import { React, useState, useEffect } from 'react'
+import { React, useState } from 'react'
 // ** Next Imports
 import { useRouter } from 'next/router'
 // ** Axios Imports
@@ -9,20 +9,10 @@ import api from '../components/api'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
 import { styled, useTheme } from '@mui/material/styles'
 import MuiCard from '@mui/material/Card'
-import InputAdornment from '@mui/material/InputAdornment'
-import MuiFormControlLabel from '@mui/material/FormControlLabel'
-
-// ** Icons Imports
-import EyeOutline from 'mdi-material-ui/EyeOutline'
-import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -30,18 +20,10 @@ import themeConfig from 'src/configs/themeConfig'
 // ** Layout Import
 import BlankLayout from 'src/components/blank-layout'
 import Notification from 'src/components/notification'
-import { useCookies } from 'react-cookie'
 
 // ** Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { width: '28rem' }
-}))
-
-const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
-  '& .MuiFormControlLabel-label': {
-    fontSize: '0.875rem',
-    color: theme.palette.text.secondary
-  }
 }))
 
 const ResetPasswordPage = () => {
@@ -53,33 +35,34 @@ const ResetPasswordPage = () => {
   const [values, setValues] = useState({
     token: '',
     new_password: '',
-    showNewPassword: false, 
     confirm_new_password: '',
-    showConfirmNewPassword: false
   })
+
+  const errors = {
+    token: '',
+    new_password: `
+    \u2022\tPassword must be at least 8 characters long\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0
+    \u2022\tPassword must contain at least 1 lowercase characters
+    \u2022\tPassword must contain at least 1 uppercase characters`,
+    confirm_new_password: 'Confirm password does not match the new password',
+  }
+
+  const validateFields = () => {
+    return (values.token !== '' &&
+            values.new_password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/) &&
+            values.confirm_new_password === values.new_password)
+  }
 
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
-  const handleClickShowNewPassword = () => {
-    setValues({ ...values, showNewPassword: !values.showNewPassword })
-  }
-
-  const handleClickShowConfirmNewPassword = () => {
-    setValues({ ...values, showConfirmNewPassword: !values.showConfirmNewPassword })
-  }
-
-  const handleMouseDownPassword = event => {
-    event.preventDefault()
-  }
-
-  // TODO: Update function + Check passwords are matched!
   const handleSetNewPassword = async e => {
     e.preventDefault()
 
-    if (values.new_password !== values.confirm_new_password) {
-      return Notification('Passwords are not identical', 'error').apply()
+    if (values.token === '') {
+      // This should never happen - just for extra verification!
+      return Notification('Token must be filled in - Check your email for the token', 'error').apply()
     }
 
     const body = {
@@ -184,59 +167,57 @@ const ResetPasswordPage = () => {
             <TextField
               autoFocus
               fullWidth
+              required
               id='Token'
               label='Token'
               value={values.token}
               sx={{ marginBottom: 4 }}
               onChange={handleChange('token')}
+              error={values.token === ''}
+              helperText={
+                values.token === '' ? errors.token : null
+              }
             />
-            <FormControl fullWidth>
-              <InputLabel htmlFor='auth-new-password'>New Password</InputLabel>
-              <OutlinedInput
-                label='New Password'
-                value={values.new_password}
-                sx={{ marginBottom: 4 }}
-                id='auth-new-password'
-                onChange={handleChange('new_password')}
-                type={values.showNewPassword ? 'text' : 'password'}
-                endAdornment={
-                  <InputAdornment position='end'>
-                    <IconButton
-                      edge='end'
-                      onClick={handleClickShowNewPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      aria-label='toggle password visibility'
-                    >
-                      {values.showNewPassword ? <EyeOutline /> : <EyeOffOutline />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel htmlFor='auth-confirm-new-password'>Confirm New Password</InputLabel>
-              <OutlinedInput
-                label='Confirm New Password'
-                value={values.confirm_new_password}
-                id='auth-confirm-new-password'
-                onChange={handleChange('confirm_new_password')}
-                type={values.showConfirmNewPassword ? 'text' : 'password'}
-                endAdornment={
-                  <InputAdornment position='end'>
-                    <IconButton
-                      edge='end'
-                      onClick={handleClickShowConfirmNewPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      aria-label='toggle password visibility'
-                    >
-                      {values.showConfirmNewPassword ? <EyeOutline /> : <EyeOffOutline />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
-            
-            <Button fullWidth size='large' variant='contained' sx={{ marginBottom: 7, marginTop: 3}} onClick={e => handleSetNewPassword(e)}>
+            <TextField
+              fullWidth
+              required
+              id='New Password'
+              label='New Password'
+              type='password'
+              value={values.new_password}
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange('new_password')}
+              error={values.new_password !== '' && !values.new_password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)}
+              helperText={
+                values.new_password !== '' && !values.new_password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
+                  ? errors.new_password
+                  : null
+              }
+            />
+            <TextField
+              fullWidth
+              required
+              id='Confirm New Password'
+              label='Confirm New Password'
+              type='password'
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange('confirm_new_password')}
+              error={values.confirm_new_password !== '' && !(values.confirm_new_password === values.new_password)}
+              helperText={
+                values.confirm_new_password !== '' && !(values.confirm_new_password === values.new_password)
+                  ? errors.confirm_new_password
+                  : null
+              }
+            />
+
+            <Button 
+              fullWidth 
+              size='large' 
+              variant='contained' 
+              sx={{ marginBottom: 7, marginTop: 3}} 
+              onClick={e => handleSetNewPassword(e)}
+              disabled={!validateFields()}
+            >
               Submit
             </Button>
           </form>
