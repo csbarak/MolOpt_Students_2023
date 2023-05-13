@@ -66,7 +66,7 @@ const TabSecurity = () => {
       .then(res => {
         if (200 <= res.status && res.status < 300)
           return Notification('Password changed successfully', 'success', () => {
-            Notification('Next time you will be able to login with the new password only!', 'info').apply()
+            Notification('Next time you will be able to login with the new password only!', 'info', () => {}, 7500).apply()
             router.push('/dashboard')
           }).apply()
       })

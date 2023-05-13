@@ -1,16 +1,16 @@
 import { NotificationManager } from 'react-notifications'
 
-const Notification = (message, type = 'success', onNotification = () => {}) => {
+const Notification = (message, type = 'success', onNotification = () => {}, time=3000) => {
   return () => {
     switch (type) {
       case 'info':
-        return NotificationManager.info(message, 'Info', 5000, onNotification())
+        return NotificationManager.info(message, 'Info', time, onNotification())
       case 'success':
-        return NotificationManager.success(message, 'Success', 3000, onNotification())
+        return NotificationManager.success(message, 'Success', time, onNotification())
       case 'warning':
-        return NotificationManager.warning(message, 'Warning', 3000, onNotification())
+        return NotificationManager.warning(message, 'Warning', time, onNotification())
       case 'error':
-        return NotificationManager.error(message, 'Error', 3000, onNotification())
+        return NotificationManager.error(message, 'Error', time, onNotification())
     }
   }
 }
