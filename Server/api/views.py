@@ -2,7 +2,7 @@ import io
 from dataclasses import fields
 from django.core.serializers import serialize
 from django.http import HttpResponse, HttpResponseServerError
-
+from .tokens import send_activation_email, check_token
 from .serializers import UserAlgoritmRunSerializer
 from .models import UserProfile as User
 import io
@@ -38,12 +38,83 @@ from datetime import datetime, timedelta
 
 RESULT_SAVING_TIME=4 #in weeks
 MAX_PARALLEL_RUNS = 9999
-RUNS_QUEUE = []
 ADMIN_EMAILS = {
     'Report a bug': 'nofarrozenberg1@gmail.com',
     'Report a problem': 'nofarrozenberg2@gmail.com',
     'Suggestion': 'nofarrozenberg3@gmail.com'
 }
+
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        domain = request.headers['Host']
+        email = request.data['email']
+        user = User.objects.get(email=email)
+        if user is not None:
+            try:
+                send_activation_email(user)
+                return Response(status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message":str(e)})
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": '[ForgotPasswordView] This email does not assosiate to any user'})
+
+from django.utils.http import urlsafe_base64_decode    
+
+class ResetPasswordConfirmView(APIView):
+    def post(self, request):
+        try:
+            uidb64 = request.data['uidb64']
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+            token = request.data['token']
+            if user is not None:
+                if check_token(user, token):
+                    user.set_password(request.data["password"])
+                    user.save()
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message":str(e)})
+
+class UpdateUserView(APIView):
+    permission_classes = ([IsAuthenticated])
+
+    def post(self, request):
+        try:
+            email = request.data['email']
+            user = User.objects.get(email=email)
+            if user is not None:
+
+                first_name = request.data.get('first_name')
+                if first_name is not None:
+                    user.first_name=first_name
+
+                last_name = request.data.get('last_name')
+                if last_name is not None:
+                    user.last_name=last_name
+
+                position = request.data.get('position')
+                if position is not None:
+                    user.position=position
+
+                affiliation = request.data.get('affiliation')
+                if affiliation is not None:
+                    user.affiliation=affiliation
+
+                password = request.data.get('password')
+                if password is not None:
+                    user.set_password(password)
+
+                user.save()
+                return Response(status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={"message":str(e)})
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -230,9 +301,8 @@ class UserRunsViewSet(viewsets.ModelViewSet):
         """Sets the user profile to the logged in user"""
         serializer.save(user_profile=self.request.user)
 
-
 fs = FileSystemStorage()
-executor = concurrent.futures.ThreadPoolExecutor()
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_RUNS)
 
 
 def Clear_media():
@@ -248,22 +318,20 @@ def Clear_media():
 
 
 def runMCS(rId, data):
-    if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        MCS_Script.make_it_run('ref' + str(rId), 'ligand' + str(rId), rId)
-        run = UserAlgoritmRun.objects.get(id=rId)
-        if run.algorithm_name=='Alignment':
-            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                                'noreplymolopt@gmail.com', [data['email']])
-            email.send()
-            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf' )):
-                        result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
-            run.status = 'finished'
-            run.result = zip_file_path
-            run.save()
-            RUNS_QUEUE.remove(rId)
-            Clear_media()
+    MCS_Script.make_it_run('ref' + str(rId), 'ligand' + str(rId), rId)
+    run = UserAlgoritmRun.objects.get(id=rId)
+    if run.algorithm_name=='Alignment':
+        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                            'noreplymolopt@gmail.com', [data['email']])
+        email.send()
+        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf' )):
+                    result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
+        run.status = 'finished'
+        run.result = zip_file_path
+        run.save()
+        Clear_media()
 
 
 class UserRunAlignmentApiView(APIView):
@@ -273,7 +341,6 @@ class UserRunAlignmentApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = 'Alignment'
         my_run.save()
-        RUNS_QUEUE.append(my_run.id)
         try:
             fs.save('ref' + str(my_run.id), request.data['ref'])
             fs.save('ligand' + str(my_run.id), request.data['ligand'])
@@ -282,35 +349,32 @@ class UserRunAlignmentApiView(APIView):
         except Exception as e:
             my_run.status = 'failed'
             my_run.save()
-            RUNS_QUEUE.remove(my_run.id)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runFeature(rId, data):
-    if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        res = []
-        if data['Mordred']=='true':
-            Mordred_Features_Script.make_it_run('mol' + str(rId), rId)
-            res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
-        if data['RDKit']=='true':
-            RDKit_Features_Script.make_it_run('mol' + str(rId), rId)
-            res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
-        run = UserAlgoritmRun.objects.get(id=rId)
-        if run.algorithm_name=='Feature Extraction':
-            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                                'noreplymolopt@gmail.com', [data['email']])
-            email.send()
-            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                    for f in res:
-                        if os.path.exists(os.path.join(fs.location,f)):
-                            result.write(fs.path(f), arcname=os.path.basename(f))
-            run.status = 'finished'
-            run.result = zip_file_path
-            run.save()
-            RUNS_QUEUE.remove(rId)
-            Clear_media()
+    res = []
+    if data['Mordred']=='true':
+        Mordred_Features_Script.make_it_run('mol' + str(rId), rId)
+        res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
+    if data['RDKit']=='true':
+        RDKit_Features_Script.make_it_run('mol' + str(rId), rId)
+        res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
+    run = UserAlgoritmRun.objects.get(id=rId)
+    if run.algorithm_name=='Feature Extraction':
+        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                            'noreplymolopt@gmail.com', [data['email']])
+        email.send()
+        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                for f in res:
+                    if os.path.exists(os.path.join(fs.location,f)):
+                        result.write(fs.path(f), arcname=os.path.basename(f))
+        run.status = 'finished'
+        run.result = zip_file_path
+        run.save()
+        Clear_media()
 
 
 class UserRunFeatureExtractionApiView(APIView):
@@ -320,7 +384,6 @@ class UserRunFeatureExtractionApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = 'Feature Extraction'
         my_run.save()
-        RUNS_QUEUE.append(my_run.id)
         try:
             fs.save('mol' + str(my_run.id), request.data['mol'])
             executor.submit(runFeature, my_run.id, request.data)
@@ -328,61 +391,56 @@ class UserRunFeatureExtractionApiView(APIView):
         except Exception as e:
             my_run.status = 'failed'
             my_run.save()
-            RUNS_QUEUE.remove(my_run.id)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runAlgos(rId, data):
-    if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        res = []
-        if data['xgboost']['isXGBoost']=='true':
-            xg = data['xgboost']['xgboostValue']
-            res.append(f'Predicted_Results_XG{id}.csv')
-            if data['xgboost']['isAuto']=='false':
-                Model_Training_Script.make_it_train('learning' + str(rId), xg['features'], xg['learningRate'],
-                                                    xg['maxDepth'], xg['lambda'], xg['alpha'], xg['dropRate'], rId)
-                Prediction_Script.make_it_rain('prediction' + str(rId), xg['features'], rId)
-            else:
-                ExpertMode_One.make_it_rain('learning' + str(rId), rId)
-                ExpertMode_Two.make_it_rain('learning' + str(rId), xg['numberOfFeatures'], rId)
-                ExpertMode_Prediction_Script.make_it_rain('prediction' + str(rId), xg['numberOfFeatures'], rId)
-        if data['lasso']['isLasso']=='true':
-            res.append(f'Predicted_Results_Lasso{id}.csv')
-            lasso = data['lasso']['lassoValue']
-            if data['lasso']['isAuto']=='false':
-                Lasso_Regression_Manual.make_it_rain('learning' + str(rId), lasso['features'], lasso['alpha'], rId)
-                Lasso_Regression_Manual_Prediction.make_it_rain('prediction' + str(rId), lasso['features'], rId)
-            else:
-                Lasso_Regression_N1.make_it_rain('learning' + str(rId), rId)
-                Lasso_Regression_N2.make_it_rain('learning' + str(rId), lasso['numberOfFeatures'], rId)
-                Lasso_Regression_Prediction_Script.make_it_rain('prediction' + str(rId), lasso['numberOfFeatures'], rId)
-        if data['dtr']['isDTR']=='true':
-            tree = data['dtr']['dtrValue']
-            res.append(f'Predicted_Results_dtr{id}.csv')
-            if data['dtr']['isAuto']=='false':
-                DecisionTreeRegressor_Manual.make_it_train('learning' + str(rId), tree['features'], tree['maxDepth'],
-                                                           tree['minSample'], tree['minSampleLeaf'],
-                                                           tree['minWeightFraction'], rId)
-                DecisionTreeRegressor_Manual_Prediction.make_it_rain('prediction' + str(rId), tree['features'], rId)
-            else:
-                Decision_Tree_Improved_1.make_it_rain('learning' + str(rId), rId)
-                Decision_Tree_Improved_2.make_it_rain('learning' + str(rId), tree['numberOfFeatures'], rId)
-                Decision_Tree_Prediction_Script.make_it_rain('prediction' + str(rId), tree['numberOfFeatures'], rId)
-        run = UserAlgoritmRun.objects.get(id=rId)
-        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                for f in res:
-                    if os.path.exists(os.path.join(fs.location,f )):
-                        result.write(fs.path(f), arcname=os.path.basename(f))
-        run.status = 'finished'
-        run.result = zip_file_path
-        run.save()
-        RUNS_QUEUE.remove(rId)
-        Clear_media()
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                             'noreplymolopt@gmail.com', [data['email']])
-        email.send()
+    res = []
+    print(data)
+    if data['xgboost_isXGBoost']=='true':
+        res.append(f'Predicted_Results_XG{rId}.csv')
+        if data['xgboost_isAuto']=='false':
+            Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
+                                                float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
+            Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
+        else:
+            ExpertMode_One.make_it_rain(f'learning{rId}', rId)
+            ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
+            ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+    if data['lasso_isLasso']=='true':
+        res.append(f'Predicted_Results_Lasso{rId}.csv')
+        if data['lasso_isAuto']=='false':
+            Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
+            Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
+        else:
+            Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
+            Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+            Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+    if data['dtr_isDTR']=='true':
+        res.append(f'Predicted_Results_dtr{rId}.csv')
+        if data['dtr_isAuto']=='false':
+            DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
+                                                        float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
+                                                        float(data['dtr_minWeightFraction']), rId)
+            DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
+        else:
+            Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
+            Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+            Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+    email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                            'noreplymolopt@gmail.com',[data['email']])
+    email.send()
+    run = UserAlgoritmRun.objects.get(id=rId)
+    zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+    with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+            for f in res:
+                if os.path.exists(os.path.join(fs.location,f)):
+                    result.write(fs.path(f), arcname=os.path.basename(f))
+    run.status = 'finished'
+    run.result = zip_file_path
+    run.save()
+    Clear_media()
 
 
 class UserRunMLAlgorithmsApiView(APIView):
@@ -393,7 +451,6 @@ class UserRunMLAlgorithmsApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = name
         my_run.save()
-        RUNS_QUEUE.append(my_run.id)
         try:
             fs.save('learning' + str(my_run.id), request.data['learning'])
             fs.save('prediction' + str(my_run.id), request.data['prediction'])
@@ -402,18 +459,16 @@ class UserRunMLAlgorithmsApiView(APIView):
         except Exception as e:
             my_run.status = 'failed'
             my_run.save()
-            RUNS_QUEUE.remove(my_run.id)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def runAutoProcess(rId, data):
-    if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
-        runMCS(rId,data)
-        sdfMolConvert(rId)
-        runFeature(rId, data)
-        cleanCSV(rId)
-        runAlgos(rId, data)
+    runMCS(rId,data)
+    sdfMolConvert(rId)
+    runFeature(rId, data)
+    cleanCSV(rId)
+    runAlgos(rId, data)
 
 
 
@@ -424,7 +479,6 @@ class UserRunAutoProcessApiView(APIView):
         my_run.status = 'running'
         my_run.algorithm_name = 'Auto Process'
         my_run.save()
-        RUNS_QUEUE.append(my_run.id)
         try:
             fs.save('ref'+str(my_run.id), request.data['ref'])
             fs.save('ligand'+str(my_run.id), request.data['ligand'])
@@ -434,7 +488,6 @@ class UserRunAutoProcessApiView(APIView):
         except Exception as e:
             my_run.status = 'failed'
             my_run.save()
-            RUNS_QUEUE.remove(my_run.id)
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

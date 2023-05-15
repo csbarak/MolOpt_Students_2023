@@ -13,13 +13,15 @@ def make_it_train(filename, features, param_max_depth, param_min_samples_split, 
     # Reading the data
     #
     dataframe = pandas.read_csv(filename)
-    X = dataframe
-    X = X.drop('BOND', axis=1)
+    features=features.split(',')
+    # X = dataframe
+    # X = X.drop('BOND', axis=1)
     X = dataframe[features]
     #
     # This is the target variable
     #
     Y = dataframe['BOND']
+
     X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=0)
     from sklearn.tree import DecisionTreeRegressor
     regressor = DecisionTreeRegressor(max_depth=param_max_depth, min_samples_split=param_min_samples_split,

@@ -11,10 +11,10 @@ def make_it_rain(filename, Num_Features,id):
     fs = FileSystemStorage()
     os.chdir(fs.location)
     dataframe = pandas.read_csv(filename)
+    print(Num_Features)
     with open(f"TopFeaturesXG{id}.txt") as f:
         mylist = f.read().splitlines()
     SelectedFeatures = mylist[0:Num_Features]
-
     def algorithm_pipeline(X_train_data, X_test_data, y_train_data, y_test_data,
                            model, param_grid, cv=10, scoring_fit='neg_mean_squared_error',
                            do_probabilities=False):
@@ -34,7 +34,6 @@ def make_it_rain(filename, Num_Features,id):
             pred = fitted_model.predict(X_test_data)
 
         return fitted_model, pred
-
     X = dataframe
     X = X.drop('BOND', axis=1)
     X = X[SelectedFeatures]
