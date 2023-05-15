@@ -27,7 +27,6 @@ def make_it_run(filename,id):
                     m = Chem.MolFromMol2Block(block, sanitize=sanitize)
                 mols.append(m)
         return (mols)
-
     database = Mol2MolSupplier_1(filename, sanitize=False)
     import pandas as pd
     table = pd.DataFrame()
