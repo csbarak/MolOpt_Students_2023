@@ -18,6 +18,8 @@ import EyeOutline from 'mdi-material-ui/EyeOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 import api from './api'
 import Notification from './notification'
+import { useRouter } from 'next/router'
+import { useCookies } from 'react-cookie'
 
 const TabSecurity = () => {
   // ** States
@@ -28,6 +30,9 @@ const TabSecurity = () => {
     showCurrentPassword: false,
     showConfirmNewPassword: false
   })
+
+  const [cookies, setCookie, removeCookie] = useCookies()
+  const router = useRouter()
 
   // Handle Current Password
   const handleCurrentPasswordChange = prop => event => {
@@ -57,14 +62,13 @@ const TabSecurity = () => {
 
   const handleOnClick = async () => {
     return await api
-      .post(
-        'change-password/',
-        { password: values.newPassword },
-        { headers: { Authorization: `Token ${cookies.token}` } }
-      )
+      .post('/update_user_info/', { email: cookies.email, password: values.newPassword }, { headers: { Authorization: `Token ${cookies.token}` } })
       .then(res => {
         if (200 <= res.status && res.status < 300)
-          return Notification('Password changed successfully', 'success').apply()
+          return Notification('Password changed successfully', 'success', () => {
+            Notification('Next time you will be able to login with the new password only!', 'info', () => {}, 7500).apply()
+            router.push('/dashboard')
+          }).apply()
       })
       .catch(err => {
         return Notification('Failed to change password', 'error').apply()
