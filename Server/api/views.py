@@ -28,6 +28,7 @@ from algos.XG_Expert import ExpertMode_One, ExpertMode_Two, ExpertMode_Predictio
 from algos.XG_Manual import Model_Training_Script, Prediction_Script
 from algos import MCS_Script, Mordred_Features_Script, RDKit_Features_Script
 from rdkit import Chem
+import pybel
 import concurrent.futures
 import pandas as pd
 from api import models
@@ -36,7 +37,7 @@ from api import serializers
 from datetime import datetime, timedelta
 
 RESULT_SAVING_TIME=4 #in weeks
-MAX_PARALLEL_RUNS = 5
+MAX_PARALLEL_RUNS = 9999
 RUNS_QUEUE = []
 ADMIN_EMAILS = {
     'Report a bug': 'nofarrozenberg1@gmail.com',
@@ -286,10 +287,10 @@ class UserRunAlignmentApiView(APIView):
 def runFeature(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
         res = []
-        if data['Mordred']:
+        if data['Mordred']=='true':
             Mordred_Features_Script.make_it_run('mol' + str(rId), rId)
             res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
-        if data['RDKit']:
+        if data['RDKit']=='true':
             RDKit_Features_Script.make_it_run('mol' + str(rId), rId)
             res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
         run = UserAlgoritmRun.objects.get(id=rId)
@@ -300,7 +301,7 @@ def runFeature(rId, data):
             zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
                     for f in res:
-                        if os.path.exists(os.path.join(fs.location,f )):
+                        if os.path.exists(os.path.join(fs.location,f)):
                             result.write(fs.path(f), arcname=os.path.basename(f))
             run.status = 'finished'
             run.result = zip_file_path
@@ -332,10 +333,10 @@ class UserRunFeatureExtractionApiView(APIView):
 def runAlgos(rId, data):
     if len(RUNS_QUEUE) <= MAX_PARALLEL_RUNS:
         res = []
-        if data['xgboost']['isXGBoost']:
+        if data['xgboost']['isXGBoost']=='true':
             xg = data['xgboost']['xgboostValue']
             res.append(f'Predicted_Results_XG{id}.csv')
-            if not data['xgboost']['isAuto']:
+            if data['xgboost']['isAuto']=='false':
                 Model_Training_Script.make_it_train('learning' + str(rId), xg['features'], xg['learningRate'],
                                                     xg['maxDepth'], xg['lambda'], xg['alpha'], xg['dropRate'], rId)
                 Prediction_Script.make_it_rain('prediction' + str(rId), xg['features'], rId)
@@ -343,20 +344,20 @@ def runAlgos(rId, data):
                 ExpertMode_One.make_it_rain('learning' + str(rId), rId)
                 ExpertMode_Two.make_it_rain('learning' + str(rId), xg['numberOfFeatures'], rId)
                 ExpertMode_Prediction_Script.make_it_rain('prediction' + str(rId), xg['numberOfFeatures'], rId)
-        if data['lasso']['isLasso']:
+        if data['lasso']['isLasso']=='true':
             res.append(f'Predicted_Results_Lasso{id}.csv')
             lasso = data['lasso']['lassoValue']
-            if not data['lasso']['isAuto']:
+            if data['lasso']['isAuto']=='false':
                 Lasso_Regression_Manual.make_it_rain('learning' + str(rId), lasso['features'], lasso['alpha'], rId)
                 Lasso_Regression_Manual_Prediction.make_it_rain('prediction' + str(rId), lasso['features'], rId)
             else:
                 Lasso_Regression_N1.make_it_rain('learning' + str(rId), rId)
                 Lasso_Regression_N2.make_it_rain('learning' + str(rId), lasso['numberOfFeatures'], rId)
                 Lasso_Regression_Prediction_Script.make_it_rain('prediction' + str(rId), lasso['numberOfFeatures'], rId)
-        if data['dtr']['isDTR']:
+        if data['dtr']['isDTR']=='true':
             tree = data['dtr']['dtrValue']
             res.append(f'Predicted_Results_dtr{id}.csv')
-            if not data['dtr']['isAuto']:
+            if data['dtr']['isAuto']=='false':
                 DecisionTreeRegressor_Manual.make_it_train('learning' + str(rId), tree['features'], tree['maxDepth'],
                                                            tree['minSample'], tree['minSampleLeaf'],
                                                            tree['minWeightFraction'], rId)
@@ -436,12 +437,8 @@ class UserRunAutoProcessApiView(APIView):
 
 
 def sdfMolConvert(id):
-    sdf = Chem.SDMolSupplier(f'aligned{id}.sdf')
-    mol = Chem.Mol2Writer(open(f'mol{id}.mol2', "w"))
-    for mol in sdf:
-        mol.write(mol)
-    mol.close()
-
+    mol = pybel.readfile('sdf', f'aligned{id}.sdf').next()
+    mol.write('mol2', f'mol{id}.mol2', overwrite=True)
 
 def cleanCSV(id):
     if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
