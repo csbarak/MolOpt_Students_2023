@@ -20,7 +20,7 @@ export const clearFields = (
     setXgboostSelection([])
   }
   if (!isLasso) {
-    setLassoValues(null)
+    setLassoValues('')
     setLassoSelection([])
   }
   if (!isDTR) {
@@ -39,14 +39,17 @@ export const clearOnNavi = (
   setSelectedRefFile,
   setSelectedLigandFile,
   setSelectedAlignmentFile,
-  setSelectedDatasetFile
+  setSelectedDatasetFile,
+  setSelectedPredictionFile
 ) => {
   if (value === '1') {
     setSelectedAlignmentFile(null)
+    setSelectedPredictionFile(null)
     return setSelectedDatasetFile(null)
   } else if (value === '2') {
     setSelectedRefFile(null)
     setSelectedLigandFile(null)
+    setSelectedPredictionFile(null)
     return setSelectedDatasetFile(null)
   }
   setSelectedRefFile(null)

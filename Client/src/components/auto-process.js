@@ -10,15 +10,11 @@ import {
   Button,
   Switch,
   Divider,
-  MenuItem,
   TextField,
-  InputLabel,
   FormControlLabel,
   Typography,
   CardContent,
   CardActions,
-  Select,
-  FormControl,
   IconButton,
   Tooltip
 } from '@mui/material'
@@ -39,7 +35,8 @@ const AutoProcess = ({
   selectedAlignmentFile,
   selectedLigandFile,
   selectedRefFile,
-  selectedDatasetFile
+  selectedDatasetFile,
+  selectedPredictionFile
 }) => {
   const [auto, setAuto] = useState(false)
   const [isRDKit, setIsRDKit] = useState(false)
@@ -67,7 +64,7 @@ const AutoProcess = ({
     minSampleLeaf: '',
     minWeightFraction: ''
   })
-  const [lassoValue, setLassoValues] = useState(null)
+  const [lassoValue, setLassoValues] = useState('')
   const [numberOfFeaturesLasso, setNumberOfFeaturesLasso] = useState('')
   const [xgboostSelection, setXgboostSelection] = useState([])
   const [dtrSelection, setDtrSelection] = useState([])
@@ -124,6 +121,7 @@ const AutoProcess = ({
 
   const errors = {
     numberOfFeatures: 'Number of features must be a number between [0-20]',
+    lassoValue: 'Number of features must be a number between [3-10]',
     learningRate: 'Learning rate must be a number between [0.0-1.0]',
     lambda: 'Lambda must be a number between [0.0-10.0]',
     dropRate: 'Drop rate must be a number between [0.0-1.0]',
@@ -158,13 +156,10 @@ const AutoProcess = ({
       }
     }
     if (isLasso) {
-      if (isAutoLasso && numberOfFeaturesLasso === '') {
+      if (isAutoLasso && (numberOfFeaturesLasso === '' || !numberOfFeaturesLasso.match(/^(3|4|5|6|7|8|9|10)$/))) {
         return false
       }
-      if (
-        (!isAutoLasso && (lassoSelection.length === 0 || lassoValue === null)) ||
-        lassoSelection.length !== lassoValue
-      ) {
+      if (!isAutoLasso && (lassoSelection.length === 0 || !validateField('lasso'))) {
         return false
       }
     }
@@ -188,6 +183,8 @@ const AutoProcess = ({
           dtrValue.minSampleLeaf.match(/^([1-9]|[1-4][0-9]|50)$/) &&
           dtrValue.minWeightFraction.match(/^(0(\.[0-5]*)?|0\.5)$/)
         )
+      case 'lasso':
+        return lassoValue.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)
     }
   }
 
@@ -195,27 +192,29 @@ const AutoProcess = ({
     e.preventDefault()
     if (value === '1') {
       const formData = new FormData()
+      formData.append('email', cookies.email)
       formData.append('ref', selectedRefFile)
       formData.append('ligand', selectedLigandFile)
-      formData.append('binding', bindingSelection)
+      formData.append('learning', bindingSelection)
       formData.append('xgboost', {
         isXGBoost: isXGBoostAlgo,
         isAuto: isAutoXGBoost,
-        xgboostValue: xgboostValue,
+        xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
       })
       formData.append('dtr', {
         isDTR: isDTR,
         isAuto: isAutoDTR,
-        dtrValue: dtrValue,
-        features: dtrSelection,
-        numberOfFeatures: dtrNumFeatures
+        dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
       })
       formData.append('lasso', {
         isLasso: isLasso,
         isAuto: isAutoLasso,
-        lassoValue: lassoValue,
-        features: lassoSelection,
-        numberOfFeatures: numberOfFeaturesLasso
+        lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
+      })
+      console.log({
+        isXGBoost: isXGBoostAlgo,
+        isAuto: isAutoXGBoost,
+        xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
       })
       return await api
         .post('run_auto_process/', formData)
@@ -248,28 +247,23 @@ const AutoProcess = ({
       }
     }
     const formData = new FormData()
-    formData.append('csv', selectedDatasetFile)
+    formData.append('learning', selectedDatasetFile)
+    formData.append('prediction', selectedPredictionFile)
     formData.append('email', cookies.email)
     formData.append('xgboost', {
-      numberOfFeatures: xgboostNumFeatures,
       isXGBoost: isXGBoostAlgo,
       isAuto: isAutoXGBoost,
-      xgboostValue: xgboostValue,
-      features: xgboostSelection
+      xgboostValue: { ...xgboostValue, numberOfFeatures: xgboostNumFeatures, features: xgboostSelection }
     })
     formData.append('dtr', {
       isDTR: isDTR,
       isAuto: isAutoDTR,
-      dtrValue: dtrValue,
-      features: dtrSelection,
-      numberOfFeatures: dtrNumFeatures
+      dtrValue: { ...dtrValue, numberOfFeatures: dtrNumFeatures, features: dtrSelection }
     })
     formData.append('lasso', {
       isLasso: isLasso,
       isAuto: isAutoLasso,
-      lassoValue: lassoValue,
-      features: lassoSelection,
-      numberOfFeatures: numberOfFeaturesLasso
+      lassoValue: { alpha: lassoValue, numberOfFeatures: numberOfFeaturesLasso, features: lassoSelection }
     })
     return await api
       .post('run_ML_algorithms/', formData)
@@ -299,6 +293,7 @@ const AutoProcess = ({
       : !(
           (isXGBoostAlgo || isDTR || isLasso) &&
           selectedDatasetFile !== null &&
+          selectedPredictionFile !== null &&
           validateFields() &&
           multipleAlgoSelection.length > 0
         )
@@ -367,7 +362,7 @@ const AutoProcess = ({
             </Grid>
             <Grid item xs={12} sx={{ textAlign: 'center' }} hidden={value === '2' || value === '3'}>
               <Typography variant='body2' sx={{ fontWeight: 600, mb: 5, fontSize: 16 }}>
-                Binding Score
+                Learning Score
               </Typography>
               <Tooltip
                 title={
@@ -386,7 +381,7 @@ const AutoProcess = ({
                   color={bindingSelection === null ? 'secondary' : 'primary'}
                   sx={{ mr: 2 }}
                 >
-                  {bindingSelection ? bindingSelection.name : 'Upload binding file'}
+                  {bindingSelection ? bindingSelection.name : 'Upload Learning file'}
                   <input accept='.csv' type='file' hidden onChange={e => handleUploadBinding(e)} />
                 </Button>
               </Tooltip>
@@ -685,10 +680,10 @@ const AutoProcess = ({
                 <TextField
                   fullWidth
                   value={numberOfFeaturesLasso}
-                  error={numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('^(1?[0-9]|20)$')}
+                  error={numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('(?:3|4|5|6|7|8|9|10)$')}
                   helperText={
-                    numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('^(1?[0-9]|20)$')
-                      ? errors.learningRate
+                    numberOfFeaturesLasso !== '' && !numberOfFeaturesLasso.match('(?:3|4|5|6|7|8|9|10)$')
+                      ? errors.lassoValue
                       : null
                   }
                   label='Number Of Features'
@@ -714,23 +709,29 @@ const AutoProcess = ({
               sm={6}
               hidden={!isLasso || !multipleAlgoSelection.includes('Lasso Regression') || isAutoLasso}
             >
-              <FormControl fullWidth>
-                <InputLabel id='form-layouts-separator-select-label'>{`Train/Predict with top features`}</InputLabel>
-                <Select
-                  label={`Train/Predict with top features`}
-                  id='form-layouts-separator-select'
-                  labelId='form-layouts-separator-select-label'
-                  defaultValue=''
-                  value={lassoValue === null ? '' : lassoValue}
+              <Tooltip
+                title={
+                  <Typography fontSize={15} variant='body1' color={'#fff'}>
+                    L1 regularization term on weights, resulting in sparse models by shrinking the less important
+                    features to zero.
+                  </Typography>
+                }
+                TransitionComponent={Fade}
+                placement='left'
+                arrow
+              >
+                <TextField
+                  fullWidth
+                  value={lassoValue}
+                  error={lassoValue !== '' && !lassoValue.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/)}
+                  helperText={
+                    lassoValue !== '' && !lassoValue.match(/^([0-9](\.[0-9]*)?|10(\.0*)?)$/) ? errors.alpha : null
+                  }
+                  label='Alpha'
+                  type='text'
                   onChange={e => setLassoValues(e.target.value)}
-                >
-                  {[...Array(8).keys()]
-                    .map(val => val + 3)
-                    .map(index => (
-                      <MenuItem value={index} key={index} defaultValue=''>{`Top ${index} features`}</MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
+                />
+              </Tooltip>
             </Grid>
             <Grid
               item
@@ -990,6 +991,7 @@ const AutoProcess = ({
                 : !(
                     (isXGBoostAlgo || isDTR || isLasso) &&
                     selectedDatasetFile !== null &&
+                    selectedPredictionFile !== null &&
                     validateFields() &&
                     multipleAlgoSelection.length > 0
                   )

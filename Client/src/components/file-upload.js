@@ -20,6 +20,7 @@ const FileUpload = () => {
   const [selectedLigandFile, setSelectedLigandFile] = useState(null)
   const [selectedAlignmentFile, setSelectedAlignmentFile] = useState(null)
   const [selectedDatasetFile, setSelectedDatasetFile] = useState(null)
+  const [selectedPredictionFile, setSelectedPredictionFile] = useState(null)
   const [autoController, setAutoController] = useState(false)
   const [cookies, setCookie, removeCookie] = useCookies()
 
@@ -58,6 +59,14 @@ const FileUpload = () => {
     setSelectedDatasetFile(e.target.files[0])
   }
 
+  const handleUploadPrediction = e => {
+    e.preventDefault()
+    if (!validate(e.target.files[0], 'dataset')) {
+      return
+    }
+    setSelectedPredictionFile(e.target.files[0])
+  }
+
   const handleOnSubmit = async e => {
     e.preventDefault()
     const formData = new FormData()
@@ -82,7 +91,8 @@ const FileUpload = () => {
       setSelectedRefFile,
       setSelectedLigandFile,
       setSelectedAlignmentFile,
-      setSelectedDatasetFile
+      setSelectedDatasetFile,
+      setSelectedPredictionFile
     )
   }, [value])
 
@@ -224,7 +234,7 @@ const FileUpload = () => {
                     color={selectedDatasetFile === null ? 'secondary' : 'primary'}
                     sx={{ mr: 2 }}
                   >
-                    {selectedDatasetFile ? selectedDatasetFile.name : 'Upload dataset file'}
+                    {selectedDatasetFile ? selectedDatasetFile.name : 'Upload Learning file'}
                     <input accept='.csv' type='file' hidden onChange={e => handleUploadDataset(e)} />
                   </Button>
                 </Tooltip>
@@ -232,6 +242,34 @@ const FileUpload = () => {
                   aria-label='delete'
                   onClick={e => setSelectedDatasetFile(null)}
                   sx={{ display: selectedDatasetFile === null ? 'none' : '' }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+                <Tooltip
+                  title={
+                    <Typography fontSize={15} variant='body1' color={'#fff'}>
+                      File that contains a collection of molecules along with some associated properties or activities,
+                      such as binding affinity or biological activity , need to be in .csv format
+                    </Typography>
+                  }
+                  TransitionComponent={Fade}
+                  placement='right'
+                  arrow
+                >
+                  <Button
+                    variant='contained'
+                    component='label'
+                    color={selectedPredictionFile === null ? 'secondary' : 'primary'}
+                    sx={{ mr: 2 }}
+                  >
+                    {selectedPredictionFile ? selectedPredictionFile.name : 'Upload Prediction file'}
+                    <input accept='.csv' type='file' hidden onChange={e => handleUploadPrediction(e)} />
+                  </Button>
+                </Tooltip>
+                <IconButton
+                  aria-label='delete'
+                  onClick={e => setSelectedPredictionFile(null)}
+                  sx={{ display: selectedPredictionFile === null ? 'none' : '' }}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -247,6 +285,7 @@ const FileUpload = () => {
         selectedLigandFile={selectedLigandFile}
         selectedRefFile={selectedRefFile}
         selectedDatasetFile={selectedDatasetFile}
+        selectedPredictionFile={selectedPredictionFile}
       />
     </>
   )

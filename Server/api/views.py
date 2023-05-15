@@ -80,7 +80,8 @@ class getAllUsers(APIView):
     def post(self, request):
         try:
             if not request.user.is_staff == True:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'User {request.user.email} is not staff'})
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={"message": 'User {request.user.email} is not staff'})
 
             users = User.objects.all().values('email', 'id', 'first_name', 'last_name',
                                               'position', 'affiliation', 'is_staff')
@@ -143,7 +144,8 @@ class CreateSystemAdminApiView(APIView):
                     return Response(status=status.HTTP_400_BAD_REQUEST,
                                     data={'message': f'User w/ email: {email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with email: {email}'})
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={'message': f'There is no user with email: {email}'})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             data={"message": '[CreateSystemAdminApiView] ' + str(e)})
@@ -170,7 +172,8 @@ class RemoveSystemAdminApiView(APIView):
                     return Response(status=status.HTTP_400_BAD_REQUEST,
                                     data={'message': f'User w/ email: {email} does not exists'})
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': f'There is no user with id: {email}'})
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={'message': f'There is no user with id: {email}'})
         except Exception as e:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             data={"message": '[CreateSystemAdminApiView] ' + str(e)})
@@ -181,7 +184,7 @@ class DeleteUserFromSystem(APIView):
 
     def post(self, request):
         try:
-            if IsAdminUser and request.user.is_staff: 
+            if IsAdminUser and request.user.is_staff:
                 email = request.data['email']
                 if email is not None:
                     user = User.objects.get(email=email)
@@ -494,3 +497,14 @@ class UserDownloadResultApiView(APIView):
             response = HttpResponse(f, content_type='application/zip')
             response['Content-Disposition'] = f'attachment; filename=test.zip'
             return response
+
+
+class UserRemoveRunApiView(APIView):
+    def post(self, request):
+        try:
+            print(request.data['id'])
+            run = UserAlgoritmRun.objects.get(id=request.data['id'])
+            run.delete()
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
