@@ -87,7 +87,6 @@ const Statistics = () => {
           setDataBar([
             { name: 'Users', Counter: res.data[0].length },
             { name: 'Admins', Counter: GetNumberOfAdmins(res.data[0]) },
-            { name: 'Owners', Counter: 1 } //Barak Only!  //TODO: Barak's user need to be added
           ])
         }
       })
