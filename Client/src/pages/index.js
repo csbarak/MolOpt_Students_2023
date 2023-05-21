@@ -239,8 +239,8 @@ const LoginPage = () => {
                 New on our platform?
               </Typography>
               <Typography variant='body2'>
-                <Link passHref href='/register' key='new_account'>
-                  <LinkStyled>Create an account</LinkStyled>
+                <Link passHref href='/register'>
+                  <LinkStyled id='new_account'>Create an account</LinkStyled>
                 </Link>
               </Typography>
             </Box>

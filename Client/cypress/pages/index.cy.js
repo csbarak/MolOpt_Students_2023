@@ -23,19 +23,18 @@ describe('Mock forgot password', () => {
     cy.get('button#forgot_password')
       .click()
       .then(() => {
-        //check the modal is open
         cy.get('div#forgot_password_modal').should('be.visible')
       })
   })
 })
 
-// describe('Navigate to register page', () => {
-//   it('Navigate to register page', () => {
-//     cy.mount(<LoginPage />)
-//     cy.get('button#new_account')
-//       .click()
-//       .then(() => {
-//         cy.url().should('include', '/register')
-//       })
-//   })
-// })
+describe('Navigate to register page', () => {
+  it('Navigate to register page', () => {
+    cy.mount(<LoginPage />)
+    cy.get('a#new_account')
+      .invoke('attr', 'href')
+      .then(href => {
+        expect(href).to.contain('/register')
+      })
+  })
+})
