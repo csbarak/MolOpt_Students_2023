@@ -1,4 +1,5 @@
 import LoginPage from '../../src/pages/index'
+import Statistics from '../../src/pages/statistics'
 
 describe('Mock login', () => {
   it('Mock login', () => {
@@ -11,7 +12,7 @@ describe('Mock login', () => {
       cy.get('button#login').click()
 
       cy.wait('@loginRequest').then(interception => {
-        expect(interception.response.statusCode).to.equal(200) // Verify the status code
+        expect(interception.response.statusCode).to.equal(200)
       })
     })
   })
@@ -35,6 +36,19 @@ describe('Navigate to register page', () => {
       .invoke('attr', 'href')
       .then(href => {
         expect(href).to.contain('/register')
+      })
+  })
+})
+
+describe('Navigate to statistics page', () => {
+  it('Navigate to statistics page', () => {
+    cy.mount(<LoginPage />)
+    cy.get('input[id="email"]').type('Admin@gmail.com')
+    cy.get('input#auth-login-password').type('Admin123!')
+    cy.get('button#login')
+      .click()
+      .then(() => {
+        cy.mount(<Statistics />)
       })
   })
 })

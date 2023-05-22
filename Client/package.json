@@ -28,8 +28,7 @@
     "build": "next build",
     "start": "next start",
     "export": "next export",
-    "test": "jest --watch",
-    "cypress": "cypress open"
+    "test": "cypress open"
   },
   "dependencies": {
     "@devexpress/dx-react-chart": "^4.0.3",

@@ -235,7 +235,7 @@ const LoginPage = () => {
               Login
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
+              <Typography variant='body2' sx={{ marginRight: 2 }} id='test'>
                 New on our platform?
               </Typography>
               <Typography variant='body2'>

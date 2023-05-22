@@ -27,10 +27,8 @@ import {
 
 const GetNumberOfAdmins = usersList => {
   const numOfAdmins = usersList.reduce((acc, user) => {
-    if (user.is_staff)
-      return acc + 1
-    else
-      return acc
+    if (user.is_staff) return acc + 1
+    else return acc
   }, 0)
 
   return numOfAdmins
@@ -38,10 +36,8 @@ const GetNumberOfAdmins = usersList => {
 
 const GetNumberOfAlgoRuns = (tasksList, algoName) => {
   const numOfRuns = tasksList.reduce((acc, task) => {
-    if (task.algorithm_name === algoName) 
-      return acc + 1
-    else 
-      return acc
+    if (task.algorithm_name === algoName) return acc + 1
+    else return acc
   }, 0)
 
   return numOfRuns
@@ -52,15 +48,12 @@ const CreateAlgosData = (tasks, algoName) => {
   tasks.forEach(task => {
     if (task.algorithm_name === algoName) {
       const date = new Date(task.time).toLocaleString('default', { month: 'short', year: 'numeric' })
-      if (!data[date])
-        data[date] = { name: date, Fail: 0, Pending: 0, Pass: 0 }
+      if (!data[date]) data[date] = { name: date, Fail: 0, Pending: 0, Pass: 0 }
 
-      if (task.status === 'failed')
-        data[date].Fail += 1
-      else if (task.status === 'running')
-        data[date].Pending += 1
-      else  // finished
-        data[date].Pass += 1
+      if (task.status === 'failed') data[date].Fail += 1
+      else if (task.status === 'running') data[date].Pending += 1
+      // finished
+      else data[date].Pass += 1
     }
   })
   return Object.values(data)
@@ -76,7 +69,21 @@ const Statistics = () => {
   const [dataLineAutoProcess, setDataLineAutoProcess] = useState([])
   const [dataPie, setDataPie] = useState([])
   const [cookies, setCookie, removeCookie] = useCookies()
-  const router = useRouter()
+
+  useEffect(() => {
+    if (
+      cookies === undefined ||
+      cookies.email === undefined ||
+      cookies.token === undefined ||
+      cookies.email === '' ||
+      cookies.token === '' ||
+      cookies.email === null ||
+      cookies.token === null
+    ) {
+      alert('You are not logged in')
+      return window.location.replace('/login')
+    }
+  }, [])
 
   // Get all users:
   useEffect(async () => {
@@ -86,7 +93,7 @@ const Statistics = () => {
         if (res.status >= 200 && res.status < 300) {
           setDataBar([
             { name: 'Users', Counter: res.data[0].length },
-            { name: 'Admins', Counter: GetNumberOfAdmins(res.data[0]) },
+            { name: 'Admins', Counter: GetNumberOfAdmins(res.data[0]) }
           ])
         }
       })
@@ -113,21 +120,6 @@ const Statistics = () => {
         }
       })
       .catch(err => Notification('Failed to fetch tasks', 'error').apply())
-  }, [])
-
-  useEffect(() => {
-    if (
-      cookies === undefined ||
-      cookies.email === undefined ||
-      cookies.token === undefined ||
-      cookies.email === '' ||
-      cookies.token === '' ||
-      cookies.email === null ||
-      cookies.token === null
-    ) {
-      alert('You are not logged in')
-      return router.push('/login')
-    }
   }, [])
 
   return (
