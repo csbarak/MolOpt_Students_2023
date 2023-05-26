@@ -119,12 +119,14 @@ describe('Mock forgot password', () => {
 //     cy.get('input[id="email"]').type('Admin@gmail.com')
 //     cy.get('input#auth-login-password').type('Admin123!')
 //     cy.get('button#login').click()
+//       .then(() => {
+//         cy.mount(<ContactAdminPage />)
+//         cy.get('select#dropdown').select('Suggestion')
+//         cy.get('textarea#message').type('UI Tests suggestion')
 
-//     cy.mount(<ContactAdminPage />)
-//     cy.get('select#dropdown').select('Suggestion') // Replace 'Option 1' with your desired dropdown option
-//     cy.get('textarea#message').type('UI Tests suggestion') // Replace the text with your desired message
-//     cy.get('button#submit').should('be.enabled')
-//     // Add assertions or actions after submitting the form if needed
+//         cy.get('button#submit').should('be.enabled')
+//     })
+
 //   })
 // })
 
@@ -140,8 +142,8 @@ describe('Mock forgot password', () => {
 //     cy.mount(<AccountSettingsPage />)
 //     cy.get('input[id="affiliation"]').type('BGU')
 //     cy.get('input[id="position"]').type('Student')
+
 //     cy.get('button#submit').should('be.enabled')
-//     // Add assertions or actions after submitting the form if needed
 //   })
 // })
 
