@@ -4,11 +4,9 @@ import StatisticsPage from '../../src/pages/statistics'
 import RegisterPage from '../../src/pages/register'
 import ContactAdminPage from '../../src/pages/contact'
 import AccountSettingsPage from '../../src/pages/account-settings'
-import DashboardPage from '../../src/pages/dashboard'
 
-// Components
-import ContactAdmin from '../../src/components/contact-form'
-import FileUpload from '../../src/components/file-upload'
+// // Components
+// import FileUpload from '../../src/components/file-upload'
 
 
 // ########################################################################
@@ -111,41 +109,58 @@ describe('Mock forgot password', () => {
 })
 
 
-// // Contact Admin
-// // =============
-// describe('Mock contact admin', () => {
-//   it('Mock contact admin', () => {
-//     cy.mount(<LoginPage />)
-//     cy.get('input[id="email"]').type('Admin@gmail.com')
-//     cy.get('input#auth-login-password').type('Admin123!')
-//     cy.get('button#login').click()
-//       .then(() => {
-//         cy.mount(<ContactAdminPage />)
-//         cy.get('select#dropdown').select('Suggestion')
-//         cy.get('textarea#message').type('UI Tests suggestion')
+// Contact Admin
+// =============
+describe('Mock contact admin', () => {
+  it('Mock contact admin', () => {
+    cy.mount(<LoginPage />)
+    cy.get('button#login').then(() => {
+      cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
 
-//         cy.get('button#submit').should('be.enabled')
-//     })
+      cy.get('input[id="email"]').type('User@gmail.com')
+      cy.get('input#auth-login-password').type('User123!')
+      cy.get('button#login').click()
 
-//   })
-// })
+      cy.wait('@loginRequest').then(interception => {
+        expect(interception.response.statusCode).to.equal(200)
+      })
+    })
+    .then(() => {
+      cy.mount(<ContactAdminPage />)
+      cy.get('div[id="select-contact"]').click()
+      cy.contains('Suggestion').click()
+      cy.get('textarea[id="message"]').type('UI Tests suggestion')
 
-// // Edit User Profile
-// // =================
-// describe('Mock edit user profile', () => {
-//   it('Mock edit user profile', () => {
-//     cy.mount(<LoginPage />)
-//     cy.get('input[id="email"]').type('Admin@gmail.com')
-//     cy.get('input#auth-login-password').type('Admin123!')
-//     cy.get('button#login').click()
+      cy.get('button[type="submit"]#contact-button').should('be.enabled')
+    })
+  })
+})
 
-//     cy.mount(<AccountSettingsPage />)
-//     cy.get('input[id="affiliation"]').type('BGU')
-//     cy.get('input[id="position"]').type('Student')
+// Edit User Profile
+// =================
+describe('Mock edit user profile', () => {
+  it('Mock edit user profile', () => {
+  cy.mount(<LoginPage />)
+  cy.get('button#login').then(() => {
+    cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
 
-//     cy.get('button#submit').should('be.enabled')
-//   })
-// })
+    cy.get('input[id="email"]').type('User@gmail.com')
+    cy.get('input#auth-login-password').type('User123!')
+    cy.get('button#login').click()
+
+    cy.wait('@loginRequest').then(interception => {
+      expect(interception.response.statusCode).to.equal(200)
+    })
+  })
+  .then(() => {
+    cy.mount(<AccountSettingsPage />)
+    cy.get('input#affiliation').type(' TEST')   // Adding ' TEST' to the input text
+    cy.get('input#position').type(' TEST')    //Adding ' TEST' to the input text
+    
+    cy.get('button#submit-changes').should('be.enabled')
+  })
+  })
+})
 
 // Statistics
 // ==========
@@ -154,8 +169,7 @@ describe('Navigate to statistics page', () => {
     cy.mount(<LoginPage />)
     cy.get('input[id="email"]').type('Admin@gmail.com')
     cy.get('input#auth-login-password').type('Admin123!')
-    cy.get('button#login')
-      .click()
+    cy.get('button#login').click()
       .then(() => {
         cy.mount(<StatisticsPage />)
       })
