@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 // ** MUI Imports
 import { Tab, Card, Button, Typography, CardContent, IconButton, Tooltip } from '@mui/material'
 import { TabList, TabPanel, TabContext } from '@mui/lab'
-import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteIcon from '@mui/icons-material/HighlightOff'
 import Fade from '@mui/material/Fade'
 import { clearOnNavi } from './clear-fields'
 import AutoProcess from './auto-process'

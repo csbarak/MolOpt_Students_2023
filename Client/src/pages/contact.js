@@ -20,7 +20,7 @@ const Contact = () => {
       cookies.token === null
     ) {
       alert('You are not logged in')
-      return router.push('/login')
+      return window.location.replace('/login')
     }
   }, [])
   return (
