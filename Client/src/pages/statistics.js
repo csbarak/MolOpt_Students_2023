@@ -4,7 +4,6 @@ import { Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import api from '../components/api'
-import { useRouter } from 'next/router'
 import { useCookies } from 'react-cookie'
 import Notification from 'src/components/notification'
 
