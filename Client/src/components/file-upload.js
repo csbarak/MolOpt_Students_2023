@@ -128,7 +128,7 @@ const FileUpload = () => {
                     sx={{ mr: 2 }}
                   >
                     {selectedRefFile ? selectedRefFile.name : 'Upload reference molecule file'}
-                    <input accept='.sdf' type='file' hidden onChange={e => handleUploadRef(e)} />
+                    <input id='file1-upload' accept='.sdf' type='file' hidden onChange={e => handleUploadRef(e)} />
                   </Button>
                 </Tooltip>
                 <IconButton
@@ -155,7 +155,7 @@ const FileUpload = () => {
                     color={selectedLigandFile === null ? 'secondary' : 'primary'}
                   >
                     {selectedLigandFile ? selectedLigandFile.name : 'Upload ligand database file'}
-                    <input accept='.sdf' type='file' hidden onChange={e => handleUploadLigand(e)} />
+                    <input id='file2-upload' accept='.sdf' type='file' hidden onChange={e => handleUploadLigand(e)} />
                   </Button>
                 </Tooltip>
                 <IconButton
@@ -168,6 +168,7 @@ const FileUpload = () => {
               </Typography>
               <Button
                 variant='contained'
+                id='alg-submit'
                 disabled={!selectedRefFile || !selectedLigandFile}
                 color={selectedRefFile && selectedLigandFile ? 'success' : 'secondary'}
                 onClick={e => handleOnSubmit(e)}

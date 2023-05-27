@@ -1,12 +1,12 @@
 // Pages
 import LoginPage from '../../src/pages/index'
-import StatisticsPage from '../../src/pages/statistics'
 import RegisterPage from '../../src/pages/register'
+import DashboardPage from '../../src/pages/dashboard'
 import ContactAdminPage from '../../src/pages/contact'
+import StatisticsPage from '../../src/pages/statistics'
+import TasksManagementPage from '../../src/pages/tasks'
+import UsersManagementPage from '../../src/pages/user-managment'
 import AccountSettingsPage from '../../src/pages/account-settings'
-
-// // Components
-// import FileUpload from '../../src/components/file-upload'
 
 
 // ########################################################################
@@ -28,7 +28,7 @@ describe('Navigate to register page', () => {
 })
 
 describe('Mock registration', () => {
-  it('Mock registration - button enabled with valid values', () => {
+  it('Mock registration - success', () => {
     cy.mount(<RegisterPage />)
     cy.get('button#register').then(() => {
 
@@ -43,7 +43,7 @@ describe('Mock registration', () => {
     })
   })
 
-  it('Mock registration - button disabled with invalid values', () => {
+  it('Mock registration - failure', () => {
     cy.mount(<RegisterPage />)
     cy.get('button#register').then(() => {
 
@@ -136,6 +136,7 @@ describe('Mock contact admin', () => {
   })
 })
 
+
 // Edit User Profile
 // =================
 describe('Mock edit user profile', () => {
@@ -155,57 +156,119 @@ describe('Mock edit user profile', () => {
   .then(() => {
     cy.mount(<AccountSettingsPage />)
     cy.get('input#affiliation').type(' TEST')   // Adding ' TEST' to the input text
-    cy.get('input#position').type(' TEST')    //Adding ' TEST' to the input text
+    cy.get('input#position').type(' TEST')      // Adding ' TEST' to the input text
     
     cy.get('button#submit-changes').should('be.enabled')
   })
   })
 })
 
+
 // Statistics
 // ==========
 describe('Navigate to statistics page', () => {
   it('Navigate to statistics page', () => {
     cy.mount(<LoginPage />)
-    cy.get('input[id="email"]').type('Admin@gmail.com')
-    cy.get('input#auth-login-password').type('Admin123!')
-    cy.get('button#login').click()
-      .then(() => {
-        cy.mount(<StatisticsPage />)
+    cy.get('button#login').then(() => {
+      cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
+
+      cy.get('input[id="email"]').type('Admin@gmail.com')
+      cy.get('input#auth-login-password').type('Admin123!')
+      cy.get('button#login').click()
+
+      cy.wait('@loginRequest').then(interception => {
+        expect(interception.response.statusCode).to.equal(200)
       })
+    })
+    .then(() => {
+      cy.mount(<StatisticsPage />)
+    })
   })
 })
 
-// // Run Algorithms
-// // ==============
-// describe('Mock run algorithms', () => {
-//   it('Mock run algorithms', () => {
-//     cy.mount(<LoginPage />)
-//     cy.get('input[id="email"]').type('Admin@gmail.com')
-//     cy.get('input#auth-login-password').type('Admin123!')
-//     cy.get('button#login').click()
 
-//     cy.mount(<RunAlgorithmsPage />)
-//     cy.fixture('file1.csv').then(fileContent => {
-//       cy.get('input#file1').attachFile({
-//         fileContent,
-//         fileName: 'file1.csv',
-//         mimeType: 'text/csv',
-//       })
-//     })
-//     cy.fixture('file2.csv').then(fileContent => {
-//       cy.get('input#file2').attachFile({
-//         fileContent,
-//         fileName: 'file2.csv',
-//         mimeType: 'text/csv',
-//       })
-//     })
-//     cy.get('button#submit').should('be.enabled')
-//   })
-  
-//   it('Upload invalid files and disable submit button', () => {
-//     cy.mount(<RunAlgorithmsPage />)
-//     // Upload invalid files or skip uploading files
-//     cy.get('button#submit').should('be.disabled')
-//   })
-// })
+// Users Management
+// ================
+describe('Navigate to users management page', () => {
+  it('Navigate to users management page', () => {
+    cy.mount(<LoginPage />)
+    cy.get('button#login').then(() => {
+      cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
+
+      cy.get('input[id="email"]').type('Admin@gmail.com')
+      cy.get('input#auth-login-password').type('Admin123!')
+      cy.get('button#login').click()
+
+      cy.wait('@loginRequest').then(interception => {
+        expect(interception.response.statusCode).to.equal(200)
+      })
+    })
+    .then(() => {
+      cy.mount(<UsersManagementPage />)
+    })
+  })
+})
+
+
+// Tasks Management
+// ================
+describe('Navigate to tasks management page', () => {
+  it('Navigate to tasks management page', () => {
+    cy.mount(<LoginPage />)
+    cy.get('button#login').then(() => {
+      cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
+
+      cy.get('input[id="email"]').type('Admin@gmail.com')
+      cy.get('input#auth-login-password').type('Admin123!')
+      cy.get('button#login').click()
+
+      cy.wait('@loginRequest').then(interception => {
+        expect(interception.response.statusCode).to.equal(200)
+      })
+    })
+    .then(() => {
+      cy.mount(<TasksManagementPage />)
+    })
+  })
+})
+
+
+// Run Algorithms
+// ==============
+describe('Mock run algorithms', () => {
+  it('Mock run algorithms', () => {
+    cy.mount(<LoginPage />)
+    cy.get('button#login').then(() => {
+      cy.intercept('POST', 'http://localhost:8000/api/login/').as('loginRequest')
+
+      cy.get('input[id="email"]').type('Admin@gmail.com')
+      cy.get('input#auth-login-password').type('Admin123!')
+      cy.get('button#login').click()
+
+      cy.wait('@loginRequest').then(interception => {
+        expect(interception.response.statusCode).to.equal(200)
+      })
+    })
+    .then(() => {
+      cy.mount(<DashboardPage />)
+      cy.fixture('PhTh.sdf').then(fileContent => {
+        cy.get('input#file1-upload').then(input => {
+          const file = new File([fileContent], 'PhTh.sdf', { type: 'chemical/x-mdl-sdfile' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          input[0].files = dataTransfer.files;
+        });
+      });
+      cy.fixture('ZINC2563881_subsets.sdf').then(fileContent => {
+        cy.get('input#file2-upload').then(input => {
+          const file = new File([fileContent], 'ZINC2563881_subsets.sdf', { type: 'chemical/x-mdl-sdfile' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          input[0].files = dataTransfer.files;
+        });
+      });
+
+      cy.get('button#alg-submit').should('be.disabled')
+    })   
+  })
+})
