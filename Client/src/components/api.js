@@ -1,7 +1,7 @@
 import axios from 'axios'
-//chnage PROD_URL to DEV_URL to run locally
+//chnage 132.72.8.188 to localhost to run locally
 const api = axios.create({
-  baseURL: `http://${process.env.PROD_URL}:8000/api/`
+  baseURL: `http://132.72.8.188:8000/api/`
 })
 
 export default api
