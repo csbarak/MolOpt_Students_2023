@@ -53,7 +53,7 @@ const ContactForm = () => {
     <Card>
       <CardHeader title='Send Message' titleTypographyProps={{ variant: 'h6' }} />
       <CardContent>
-        <form onSubmit={e => e.preventDefault()}>
+        <form id='contact-form' onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -77,6 +77,7 @@ const ContactForm = () => {
               <TextField
                 fullWidth
                 multiline
+                id='message'
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 minRows={3}
@@ -97,6 +98,7 @@ const ContactForm = () => {
                 type='submit'
                 variant='contained'
                 size='large'
+                id='contact-button'
                 sx={{ display: 'flex', justifyContent: 'center' }}
                 disabled={message === '' || selection === ''}
                 onClick={handleOnClick}

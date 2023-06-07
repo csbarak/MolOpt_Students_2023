@@ -19,7 +19,7 @@ import {
   Tooltip
 } from '@mui/material'
 
-import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteIcon from '@mui/icons-material/HighlightOff'
 import Fade from '@mui/material/Fade'
 import { getAllFeatures } from './feature-list'
 import { useEffect } from 'react'

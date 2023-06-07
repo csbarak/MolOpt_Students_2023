@@ -14,7 +14,7 @@ import {
   TablePagination
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteIcon from '@mui/icons-material/HighlightOff'
 import api from './api'
 import { useCookies } from 'react-cookie'
 import { saveAs } from 'file-saver'

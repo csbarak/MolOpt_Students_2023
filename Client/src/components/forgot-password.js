@@ -30,7 +30,7 @@ const ForgotPassword = ({ value, setValue }) => {
 
   return (
     <div>
-      <Dialog open={value} onClose={handleClose}>
+      <Dialog open={value} onClose={handleClose} id='forgot_password_modal'>
         <DialogTitle>Forgot Password</DialogTitle>
         <DialogContent>
           <DialogContentText>

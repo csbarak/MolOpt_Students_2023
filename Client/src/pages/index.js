@@ -220,21 +220,27 @@ const LoginPage = () => {
             <Box
               sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
             >
-              {/* <FormControlLabel control={<Checkbox />} label='Remember Me' /> */}
-              <Button size='small'>
+              <Button size='small' id='forgot_password'>
                 <LinkStyledForgot onClick={e => setShowForgot(true)}>Forgot Password?</LinkStyledForgot>
               </Button>
             </Box>
-            <Button fullWidth size='large' variant='contained' sx={{ marginBottom: 7 }} onClick={e => handleLogin(e)}>
+            <Button
+              id='login'
+              fullWidth
+              size='large'
+              variant='contained'
+              sx={{ marginBottom: 7 }}
+              onClick={e => handleLogin(e)}
+            >
               Login
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
+              <Typography variant='body2' sx={{ marginRight: 2 }} id='test'>
                 New on our platform?
               </Typography>
               <Typography variant='body2'>
                 <Link passHref href='/register'>
-                  <LinkStyled>Create an account</LinkStyled>
+                  <LinkStyled id='new_account'>Create an account</LinkStyled>
                 </Link>
               </Typography>
             </Box>

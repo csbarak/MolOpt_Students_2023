@@ -89,6 +89,7 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              id='first-name'
               label='First Name'
               placeholder='John'
               value={info.firstName}
@@ -98,6 +99,7 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              id='last-name'
               label='Last Name'
               placeholder='Doe'
               value={info.lastName}
@@ -108,6 +110,7 @@ const TabAccount = () => {
             <TextField
               fullWidth
               disabled={true}
+              id='email'
               type='email'
               label='Email'
               placeholder='johnDoe@example.com'
@@ -127,6 +130,7 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              id='affiliation'
               label='Affiliation'
               placeholder='Ben Gurion University'
               value={info.affiliation}
@@ -137,6 +141,7 @@ const TabAccount = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              id='position'
               label='Position'
               placeholder='Professor'
               value={info.position}
@@ -145,7 +150,7 @@ const TabAccount = () => {
           </Grid>
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled} onClick={handleSubmit}>
+            <Button id='submit-changes' variant='contained' sx={{ marginRight: 3.5 }} disabled={disabled} onClick={handleSubmit}>
               Save Changes
             </Button>
           </Grid>

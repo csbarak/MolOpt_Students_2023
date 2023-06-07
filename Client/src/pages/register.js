@@ -193,6 +193,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               required
+              id='email'
               type='email'
               label='Email'
               error={values.email !== '' && !values.email.match(/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/)}
@@ -205,6 +206,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               required
+              id='password'
               type='password'
               label='Password'
               error={values.password !== '' && !values.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)}
@@ -220,6 +222,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               required
+              id='confirm-password'
               type='password'
               label='Confirm Password'
               error={values.confirmPassword !== '' && !(values.confirmPassword === values.password)}
@@ -234,6 +237,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               required
+              id='first-name'
               type='text'
               label='First Name'
               error={values.firstName !== '' && !values.firstName.match(/^[a-zA-Z]+$/)}
@@ -244,6 +248,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               required
+              id='last-name'
               type='text'
               label='Last Name'
               error={values.lastName !== '' && !values.lastName.match(/^[a-zA-Z]+$/)}
@@ -252,7 +257,7 @@ const RegisterPage = () => {
               onChange={e => setValues(prevState => ({ ...prevState, lastName: e.target.value }))}
             />
             <FormControlLabel
-              control={<Checkbox onChange={e => setAcceptTerms(!acceptTerms)} checked={acceptTerms} />}
+              control={<Checkbox id='policy' onChange={e => setAcceptTerms(!acceptTerms)} checked={acceptTerms} />}
               label={
                 <>
                   <span>I agree to </span>
@@ -264,6 +269,7 @@ const RegisterPage = () => {
             />
             <Button
               fullWidth
+              id='register'
               size='large'
               type='submit'
               variant='contained'
