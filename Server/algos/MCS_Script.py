@@ -37,12 +37,15 @@ def make_it_run(ref_file, lig_db,id):
     reference = Chem.MolFromMolFile(ref_file, removeHs=True)
     ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
     w = Chem.SDWriter(f"aligned{id}.sdf")  # output ligands with constrained atoms
+    # reference = Chem.MolFromMolFile(ref_file, removeHs=True)
+    # ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
+    # w = Chem.SDWriter(f"aligned{id}.mol2")  # output ligands with constrained atoms
+
     #wnt = Chem.SDWriter("output_nontethered.sdf")  # output of ligands without constraints (no MCS with reference ligand)
     for mol in ligands:
         if mol == None:
             continue
         else:
-            # print(mol)
             mols = [reference, mol]
             mcsResult = rdFMCS.FindMCS(mols, threshold=0.1,completeRingsOnly=False)  # find the maximum common substructure
             if mcsResult.smartsString and len(mcsResult.smartsString) > 0:

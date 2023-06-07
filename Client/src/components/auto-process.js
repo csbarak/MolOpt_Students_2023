@@ -186,6 +186,8 @@ const AutoProcess = ({
       formData.append('ref', selectedRefFile)
       formData.append('ligand', selectedLigandFile)
       formData.append('learning', bindingSelection)
+      formData.append('RDKit', isRDKit)
+      formData.append('Mordred', isMordred)
       //// xgboost
       formData.append('xgboost_isXGBoost', multipleAlgoSelection.includes('XGBoost'))
       formData.append('xgboost_isAuto', isAutoXGBoost)

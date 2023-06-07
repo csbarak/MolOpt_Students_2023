@@ -8,7 +8,6 @@ from .models import UserProfile as User
 import io
 import os
 import zipfile
-import threading
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMessage
 from rest_framework import filters, status, viewsets
@@ -28,7 +27,6 @@ from algos.XG_Expert import ExpertMode_One, ExpertMode_Two, ExpertMode_Predictio
 from algos.XG_Manual import Model_Training_Script, Prediction_Script
 from algos import MCS_Script, Mordred_Features_Script, RDKit_Features_Script
 from rdkit import Chem
-import pybel
 import concurrent.futures
 import pandas as pd
 from api import models
@@ -313,25 +311,47 @@ def Clear_media():
             if time_diff>timedelta(weeks=RESULT_SAVING_TIME):
                 fs.delete(os.path.join(fs.location,file))
         else:
-            if time_diff>timedelta(hours=10):
                 fs.delete(os.path.join(fs.location,file))
 
-
-def runMCS(rId, data):
-    MCS_Script.make_it_run('ref' + str(rId), 'ligand' + str(rId), rId)
+def failed_run(rId):
     run = UserAlgoritmRun.objects.get(id=rId)
-    if run.algorithm_name=='Alignment':
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                            'noreplymolopt@gmail.com', [data['email']])
-        email.send()
-        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf' )):
-                    result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
-        run.status = 'finished'
-        run.result = zip_file_path
-        run.save()
-        Clear_media()
+    run.status = 'failed'
+    run.save()
+
+
+# def runMCS(rId, data):
+#     MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId,data['type'])
+#     run = UserAlgoritmRun.objects.get(id=rId)
+#     if run.algorithm_name=='Alignment':
+#         email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+#                             'noreplymolopt@gmail.com', [data['email']])
+#         email.send()
+#         zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+#         with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+#                 if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
+#                     result.write(fs.path(f'aligned{rId}.'+str(data['type'])), arcname=os.path.basename(f'aligned{rId}.'+str(data['type'])))
+#         run.status = 'finished'
+#         run.result = zip_file_path
+#         run.save()
+#         Clear_media()
+def runMCS(rId, data):
+    try:
+        MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId)
+        run = UserAlgoritmRun.objects.get(id=rId)
+        if run.algorithm_name=='Alignment':
+            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                                'noreplymolopt@gmail.com', [data['email']])
+            email.send()
+            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
+                        result.write(fs.path(f'aligned{rId}.mol2'), arcname=os.path.basename(f'aligned{rId}.mol2'))
+            run.status = 'finished'
+            run.result = zip_file_path
+            run.save()
+    except:
+        failed_run(rId)
+    Clear_media()
 
 
 class UserRunAlignmentApiView(APIView):
@@ -346,7 +366,7 @@ class UserRunAlignmentApiView(APIView):
             fs.save('ligand' + str(my_run.id), request.data['ligand'])
             executor.submit(runMCS, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
-        except Exception as e:
+        except:
             my_run.status = 'failed'
             my_run.save()
             Clear_media()
@@ -354,28 +374,36 @@ class UserRunAlignmentApiView(APIView):
 
 
 def runFeature(rId, data):
-    res = []
-    if data['Mordred']=='true':
-        Mordred_Features_Script.make_it_run('mol' + str(rId), rId)
-        res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
-    if data['RDKit']=='true':
-        RDKit_Features_Script.make_it_run('mol' + str(rId), rId)
-        res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
-    run = UserAlgoritmRun.objects.get(id=rId)
-    if run.algorithm_name=='Feature Extraction':
-        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                            'noreplymolopt@gmail.com', [data['email']])
-        email.send()
-        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                for f in res:
-                    if os.path.exists(os.path.join(fs.location,f)):
-                        result.write(fs.path(f), arcname=os.path.basename(f))
-        run.status = 'finished'
-        run.result = zip_file_path
-        run.save()
-        Clear_media()
-
+    try:
+        run = UserAlgoritmRun.objects.get(id=rId)
+        if run.algorithm_name=='Feature Extraction':
+            res = []
+            if data['Mordred']=='true':
+                Mordred_Features_Script.make_it_run('mol' + str(rId), rId,False)
+                res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
+            if data['RDKit']=='true':
+                RDKit_Features_Script.make_it_run(f'mol{rId}', rId,False)
+                res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
+            email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                                'noreplymolopt@gmail.com', [data['email']])
+            email.send()
+            zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                    for f in res:
+                        if os.path.exists(os.path.join(fs.location,f)):
+                            result.write(fs.path(f), arcname=os.path.basename(f))
+            run.status = 'finished'
+            run.result = zip_file_path
+            run.save()
+            Clear_media()
+        else:
+            if data['Mordred']=='true':
+                Mordred_Features_Script.make_it_run(f'aligned{rId}.sdf', rId,True)
+            if data['RDKit']=='true':
+                RDKit_Features_Script.make_it_run(f'aligned{rId}.sdf', rId,True)
+    except:
+        failed_run(rId)
+    Clear_media()
 
 class UserRunFeatureExtractionApiView(APIView):
     def post(self, request):
@@ -388,7 +416,7 @@ class UserRunFeatureExtractionApiView(APIView):
             fs.save('mol' + str(my_run.id), request.data['mol'])
             executor.submit(runFeature, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
-        except Exception as e:
+        except:
             my_run.status = 'failed'
             my_run.save()
             Clear_media()
@@ -396,50 +424,52 @@ class UserRunFeatureExtractionApiView(APIView):
 
 
 def runAlgos(rId, data):
-    res = []
-    print(data)
-    if data['xgboost_isXGBoost']=='true':
-        res.append(f'Predicted_Results_XG{rId}.csv')
-        if data['xgboost_isAuto']=='false':
-            Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
-                                                float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
-            Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
-        else:
-            ExpertMode_One.make_it_rain(f'learning{rId}', rId)
-            ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
-            ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
-    if data['lasso_isLasso']=='true':
-        res.append(f'Predicted_Results_Lasso{rId}.csv')
-        if data['lasso_isAuto']=='false':
-            Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
-            Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
-        else:
-            Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
-            Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
-            Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
-    if data['dtr_isDTR']=='true':
-        res.append(f'Predicted_Results_dtr{rId}.csv')
-        if data['dtr_isAuto']=='false':
-            DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
-                                                        float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
-                                                        float(data['dtr_minWeightFraction']), rId)
-            DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
-        else:
-            Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
-            Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
-            Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
-    email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-                            'noreplymolopt@gmail.com',[data['email']])
-    email.send()
-    run = UserAlgoritmRun.objects.get(id=rId)
-    zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-    with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-            for f in res:
-                if os.path.exists(os.path.join(fs.location,f)):
-                    result.write(fs.path(f), arcname=os.path.basename(f))
-    run.status = 'finished'
-    run.result = zip_file_path
-    run.save()
+    try:
+        res = []
+        if data['xgboost_isXGBoost']=='true':
+            res.append(f'Predicted_Results_XG{rId}.csv')
+            if data['xgboost_isAuto']=='false':
+                Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
+                                                    float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
+                Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
+            else:
+                ExpertMode_One.make_it_rain(f'learning{rId}', rId)
+                ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
+                ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+        if data['lasso_isLasso']=='true':
+            res.append(f'Predicted_Results_Lasso{rId}.csv')
+            if data['lasso_isAuto']=='false':
+                Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
+                Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
+            else:
+                Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
+                Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+                Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+        if data['dtr_isDTR']=='true':
+            res.append(f'Predicted_Results_dtr{rId}.csv')
+            if data['dtr_isAuto']=='false':
+                DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
+                                                            float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
+                                                            float(data['dtr_minWeightFraction']), rId)
+                DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
+            else:
+                Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
+                Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+                Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+        email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
+                                'noreplymolopt@gmail.com',[data['email']])
+        email.send()
+        run = UserAlgoritmRun.objects.get(id=rId)
+        zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+        with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
+                for f in res:
+                    if os.path.exists(os.path.join(fs.location,f)):
+                        result.write(fs.path(f), arcname=os.path.basename(f))
+        run.status = 'finished'
+        run.result = zip_file_path
+        run.save()
+    except:
+        failed_run(rId)
     Clear_media()
 
 
@@ -465,11 +495,10 @@ class UserRunMLAlgorithmsApiView(APIView):
 
 def runAutoProcess(rId, data):
     runMCS(rId,data)
-    sdfMolConvert(rId)
+    sdfToMol2(rId)
     runFeature(rId, data)
     cleanCSV(rId)
     runAlgos(rId, data)
-
 
 
 class UserRunAutoProcessApiView(APIView):
@@ -491,24 +520,31 @@ class UserRunAutoProcessApiView(APIView):
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
-def sdfMolConvert(id):
-    mol = pybel.readfile('sdf', f'aligned{id}.sdf').next()
-    mol.write('mol2', f'mol{id}.mol2', overwrite=True)
-
+def sdfToMol2(id):
+    try:
+        suppl = Chem.SDMolSupplier(f'aligned{id}.sdf')  
+        with open(f'mol{id}', "w") as writer:
+            for id, mol in enumerate(suppl, start=1):
+                if mol is not None:
+                    writer.write(Chem.MolToMolBlock(mol)) 
+    except:
+        failed_run(id)
 def cleanCSV(id):
-    if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
-        df = pd.read_csv(f'FeaturesExtracted_MORDRED{id}.csv')
-        if fs.exists(f'FeaturesExtracted_RDKIT{id}.csv'):
-            df.append(pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv'))
-    else:
-        df = pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv')
-    for col in df.columns:
-        try:
-            pd.to_numeric(df[col])
-        except ValueError:
-            df = df.drop(col, axis=1)
-    df.to_csv(f'prediction{id}.csv', index=False)
+    try:
+        if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
+            df = pd.read_csv(f'FeaturesExtracted_MORDRED{id}.csv')
+            if fs.exists(f'FeaturesExtracted_RDKIT{id}.csv'):
+                df.append(pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv'))
+        else:
+            df = pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv')
+        for col in df.columns:
+            try:
+                pd.to_numeric(df[col])
+            except ValueError:
+                df = df.drop(col, axis=1)
+        df.to_csv(f'prediction{id}', index=False)
+    except:
+        failed_run(id)
 
 
 class UserGetUserRunsApiView(APIView):
