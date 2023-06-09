@@ -135,12 +135,11 @@ const AutoProcess = ({
       }
     }
     if (multipleAlgoSelection.includes('Decision Tree Regressor')) {
-      if (isAutoDTR && dtrNumFeatures === '') {
+      if (isAutoDTR && (dtrNumFeatures === '' || !dtrNumFeatures.match('^(1?[0-9]|20)$'))) {
         return false
       }
       if (
-        (!isAutoDTR && (Object.values(dtrValue).some(x => x === '') || dtrSelection.length === 0)) ||
-        !validateField('dtr')
+        !isAutoDTR && (Object.values(dtrValue).some(x => x === '') || dtrSelection.length === 0 || !validateField('dtr'))
       ) {
         return false
       }
