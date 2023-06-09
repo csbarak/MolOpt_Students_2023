@@ -304,14 +304,15 @@ executor = concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_RUNS)
 
 
 def Clear_media():
-    files = fs.listdir(fs.location)
-    for file in files[1]:
-        time_diff=datetime.now()-datetime.fromtimestamp(fs.get_created_time(file))
-        if file.startswith('Result'):
-            if time_diff>timedelta(weeks=RESULT_SAVING_TIME):
-                fs.delete(os.path.join(fs.location,file))
-        else:
-                fs.delete(os.path.join(fs.location,file))
+    # files = fs.listdir(fs.location)
+    # for file in files[1]:
+    #     time_diff=datetime.now()-datetime.fromtimestamp(fs.get_created_time(file))
+    #     if file.startswith('Result'):
+    #         if time_diff>timedelta(weeks=RESULT_SAVING_TIME):
+    #             fs.delete(os.path.join(fs.location,file))
+    #     else:
+    #             fs.delete(os.path.join(fs.location,file))
+    pass
 
 def failed_run(rId):
     run = UserAlgoritmRun.objects.get(id=rId)
@@ -319,21 +320,6 @@ def failed_run(rId):
     run.save()
 
 
-# def runMCS(rId, data):
-#     MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId,data['type'])
-#     run = UserAlgoritmRun.objects.get(id=rId)
-#     if run.algorithm_name=='Alignment':
-#         email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-#                             'noreplymolopt@gmail.com', [data['email']])
-#         email.send()
-#         zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-#         with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-#                 if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
-#                     result.write(fs.path(f'aligned{rId}.'+str(data['type'])), arcname=os.path.basename(f'aligned{rId}.'+str(data['type'])))
-#         run.status = 'finished'
-#         run.result = zip_file_path
-#         run.save()
-#         Clear_media()
 def runMCS(rId, data):
     try:
         MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId)
@@ -344,8 +330,8 @@ def runMCS(rId, data):
             email.send()
             zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
-                        result.write(fs.path(f'aligned{rId}.mol2'), arcname=os.path.basename(f'aligned{rId}.mol2'))
+                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf')):
+                        result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
             run.status = 'finished'
             run.result = zip_file_path
             run.save()
@@ -495,7 +481,7 @@ class UserRunMLAlgorithmsApiView(APIView):
 
 def runAutoProcess(rId, data):
     runMCS(rId,data)
-    sdfToMol2(rId)
+    # sdfToMol2(rId)
     runFeature(rId, data)
     cleanCSV(rId)
     runAlgos(rId, data)
