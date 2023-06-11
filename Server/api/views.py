@@ -323,7 +323,6 @@ def failed_run(rId):
     run.save()
 
 
-
 def runMCS(rId, data):
     try:
         MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId)
