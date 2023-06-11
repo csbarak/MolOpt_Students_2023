@@ -304,14 +304,18 @@ executor = concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_RUNS)
 
 
 def Clear_media():
-    files = fs.listdir(fs.location)
-    for file in files[1]:
-        time_diff=datetime.now()-datetime.fromtimestamp(fs.get_created_time(file))
-        if file.startswith('Result'):
-            if time_diff>timedelta(weeks=RESULT_SAVING_TIME):
-                fs.delete(os.path.join(fs.location,file))
-        else:
-                fs.delete(os.path.join(fs.location,file))
+    try:
+        files = fs.listdir(fs.location)
+        for file in files[1]:
+            time_diff = datetime.now() - datetime.fromtimestamp(os.path.getctime(os.path.join(fs.location, file)))
+            if file.startswith('Result'):
+                if time_diff > timedelta(weeks=RESULT_SAVING_TIME):
+                    fs.delete(os.path.join(fs.location, file))
+            else:
+                fs.delete(os.path.join(fs.location, file))
+    except Exception as e:
+        print(e)
+
 
 def failed_run(rId):
     run = UserAlgoritmRun.objects.get(id=rId)
@@ -319,21 +323,7 @@ def failed_run(rId):
     run.save()
 
 
-# def runMCS(rId, data):
-#     MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId,data['type'])
-#     run = UserAlgoritmRun.objects.get(id=rId)
-#     if run.algorithm_name=='Alignment':
-#         email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
-#                             'noreplymolopt@gmail.com', [data['email']])
-#         email.send()
-#         zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
-#         with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-#                 if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
-#                     result.write(fs.path(f'aligned{rId}.'+str(data['type'])), arcname=os.path.basename(f'aligned{rId}.'+str(data['type'])))
-#         run.status = 'finished'
-#         run.result = zip_file_path
-#         run.save()
-#         Clear_media()
+
 def runMCS(rId, data):
     try:
         MCS_Script.make_it_run(f'ref{rId}', f'ligand{rId}', rId)
@@ -344,14 +334,16 @@ def runMCS(rId, data):
             email.send()
             zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.'+str(data['type']))):
-                        result.write(fs.path(f'aligned{rId}.mol2'), arcname=os.path.basename(f'aligned{rId}.mol2'))
+                    if os.path.exists(os.path.join(fs.location,f'aligned{rId}.sdf')):
+                        result.write(fs.path(f'aligned{rId}.sdf'), arcname=os.path.basename(f'aligned{rId}.sdf'))
             run.status = 'finished'
             run.result = zip_file_path
             run.save()
-    except:
+            Clear_media()
+    except Exception as e:
+        print('Failed Alignment: ',e)
         failed_run(rId)
-    Clear_media()
+
 
 
 class UserRunAlignmentApiView(APIView):
@@ -366,7 +358,8 @@ class UserRunAlignmentApiView(APIView):
             fs.save('ligand' + str(my_run.id), request.data['ligand'])
             executor.submit(runMCS, my_run.id, request.data)
             return Response(status=status.HTTP_200_OK)
-        except:
+        except Exception as e:
+            print('Failed Alignment: ',e)
             my_run.status = 'failed'
             my_run.save()
             Clear_media()
@@ -403,7 +396,6 @@ def runFeature(rId, data):
                 RDKit_Features_Script.make_it_run(f'aligned{rId}.sdf', rId,True)
     except:
         failed_run(rId)
-    Clear_media()
 
 class UserRunFeatureExtractionApiView(APIView):
     def post(self, request):
@@ -495,7 +487,6 @@ class UserRunMLAlgorithmsApiView(APIView):
 
 def runAutoProcess(rId, data):
     runMCS(rId,data)
-    sdfToMol2(rId)
     runFeature(rId, data)
     cleanCSV(rId)
     runAlgos(rId, data)
@@ -519,16 +510,6 @@ class UserRunAutoProcessApiView(APIView):
             my_run.save()
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-def sdfToMol2(id):
-    try:
-        suppl = Chem.SDMolSupplier(f'aligned{id}.sdf')  
-        with open(f'mol{id}', "w") as writer:
-            for id, mol in enumerate(suppl, start=1):
-                if mol is not None:
-                    writer.write(Chem.MolToMolBlock(mol)) 
-    except:
-        failed_run(id)
 def cleanCSV(id):
     try:
         if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
