@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 # import logging
 # from api import views
-from .models import UserProfile as User
-from .models import UserAlgoritmRun
+from api.models import UserProfile as User
+from api.models import UserAlgoritmRun
 
 ### ======================== TEST VARIABLES ======================== ###
 api_path = '/api/'      # Full path: 'http://localhost:8000/api/'
