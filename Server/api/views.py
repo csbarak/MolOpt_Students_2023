@@ -312,7 +312,8 @@ def Clear_media():
                 if time_diff > timedelta(weeks=RESULT_SAVING_TIME):
                     fs.delete(os.path.join(fs.location, file))
             else:
-                fs.delete(os.path.join(fs.location, file))
+                if time_diff > timedelta(hours=1):
+                    fs.delete(os.path.join(fs.location, file))
     except Exception as e:
         print(e)
 
