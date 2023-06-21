@@ -1,0 +1,10 @@
+AcidicGroupCount
+BIC4
+BIC3
+BIC2
+BIC1
+BIC0
+SIC5
+SIC3
+BIC5
+SIC2
