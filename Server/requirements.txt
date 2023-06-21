@@ -25,3 +25,5 @@ tzdata==2023.3
 virtualenv==20.17.1
 virtualenv-clone==0.5.7
 virtualenvwrapper==4.8.4
+mordred==1.2.0
+xgboost==1.7.5
