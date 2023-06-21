@@ -27,12 +27,6 @@ def make_it_rain(filename,id):
     clf = linear_model.Lasso(alpha=optimum_alpha)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
-    MeanAbsoluteError = metrics.mean_absolute_error(y_test, y_pred)
-    MeanSquaredError = metrics.mean_squared_error(y_test, y_pred)
-    RootMeanSquaredError = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
-    MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
-    MeanSquaredErrorWrite = str(MeanSquaredError)
-    RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
     features = X.columns
     coefficients = clf.coef_
     importance = np.abs(coefficients)
@@ -41,11 +35,4 @@ def make_it_rain(filename,id):
     arr = np.array(TopImportantFeatures)
     with open(f"TopFeaturesLasso{id}.txt", "w") as txt_file:
         for line in arr:
-            txt_file.write("".join(line) + "\n")  # works with any number of elements in a line
-    # txt_file = open("CustomModel_rmse.txt", "w")
-    # txt_file.write("The Mean Absolute Error is ")
-    # txt_file.write(MeanAbsoluteErrorWrite)
-    # txt_file.write("The Mean Squared Error is")
-    # txt_file.write(MeanSquaredErrorWrite)
-    # txt_file.write("The Root Mean Squared Error is")
-    # txt_file.write(RootMeanSquaredErrorWrite)
+            txt_file.write("".join(line) + "\n") 

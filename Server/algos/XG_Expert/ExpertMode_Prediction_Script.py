@@ -13,4 +13,9 @@ def make_it_rain(filename, num_pred_features,id):
     X = X[SelectedFeatures]
     model = pickle.load(open(f'Expert_Mode_NotInitial{id}.pkl', "rb"))
     predictions = model.predict(X)
-    pandas.DataFrame(predictions, columns=['predictions']).to_csv(f'Predicted_Results_XG{id}.csv', header=True)
+    df=pandas.DataFrame(predictions, columns=['predictions'])
+    with open(f'stats{id}_XG.txt') as f:
+        lines=f.read().splitlines()
+    df.loc[len(df),'predictions']=lines[0]
+    df.loc[len(df),'predictions']=lines[1]
+    df.to_csv(f'Predicted_Results_XG{id}.csv', header=True)

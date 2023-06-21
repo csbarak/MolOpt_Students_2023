@@ -29,19 +29,13 @@ def make_it_run(ref_file, lig_db,id):
     from rdkit import Chem
     from rdkit.Chem import AllChem
     from rdkit.Chem import rdFMCS
-    # from rdkit.Chem.rdMolTransforms import GetDihedralDeg, SetDihedralDeg
-    
-    ratioThreshold = 0.5  # minimum portion of the reference molecule that should be found as common substructure to consider it for tethered minimization: 0.0-1.0
+ 
     fs = FileSystemStorage()
     os.chdir(fs.location)
     reference = Chem.MolFromMolFile(ref_file, removeHs=True)
     ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
     w = Chem.SDWriter(f"aligned{id}.sdf")  # output ligands with constrained atoms
-    # reference = Chem.MolFromMolFile(ref_file, removeHs=True)
-    # ligands = Chem.SDMolSupplier(lig_db, removeHs=True)
-    # w = Chem.SDWriter(f"aligned{id}.mol2")  # output ligands with constrained atoms
 
-    #wnt = Chem.SDWriter("output_nontethered.sdf")  # output of ligands without constraints (no MCS with reference ligand)
     for mol in ligands:
         if mol == None:
             continue

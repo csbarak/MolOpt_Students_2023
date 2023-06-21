@@ -9,8 +9,6 @@ def make_it_rain(filename, Num_Features,id):
     fs = FileSystemStorage()
     os.chdir(fs.location)
     
-    # Reading the data
-    #
     dataframe = pandas.read_csv(filename)
     with open(f"TopFeaturesDTR{id}.txt") as f:
         mylist = f.read().splitlines()
@@ -18,9 +16,7 @@ def make_it_rain(filename, Num_Features,id):
     X = dataframe
     X = X.drop('BOND', axis=1)
     X = X[SelectedFeatures]
-    #
-    # This is the target variable
-    #
+
     Y = dataframe['BOND']
     X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=0)
     from sklearn.tree import DecisionTreeRegressor
@@ -28,8 +24,8 @@ def make_it_rain(filename, Num_Features,id):
     parameters = {"splitter": ["best", "random"],
                   "max_depth": [1, 5, 10, 15],
                   "min_samples_leaf": [1, 5, 10, 15],
-                  "min_weight_fraction_leaf": [0.1, 0.5, 0.9],
-                  "max_features": ["auto", "log2", "sqrt", None],
+                  "min_weight_fraction_leaf": [0.1, 0.5],
+                  "max_features": ["log2", "sqrt", None],
                   "max_leaf_nodes": [None, 10, 30, 50, 70, 90]}
     from sklearn.model_selection import GridSearchCV
     tuning_model = GridSearchCV(regressor, param_grid=parameters, scoring='neg_mean_squared_error', cv=3, verbose=3)
@@ -48,26 +44,13 @@ def make_it_rain(filename, Num_Features,id):
                                               min_weight_fraction_leaf=min_weight_fraction_leaf_value,
                                               splitter=splitter_selected)
     tuned_hyper_model.fit(X_train, y_train)
-    tuned_pred = tuned_hyper_model.predict(X_test)
-    #
-    # All the error metrics which we will display to the user
-    #
-    # Writing the error metrics to the file
-    #
-    #
-    # Saving the project to a file
+    y_pred = tuned_hyper_model.predict(X_test)
+
     with open(f'Decision_Tree_Regressor_NotInitial{id}.pkl','wb') as file:
         pickle.dump(tuned_hyper_model, file)
-    MeanAbsoluteError = metrics.mean_absolute_error(y_test, tuned_pred)
-    MeanSquaredError = metrics.mean_squared_error(y_test, tuned_pred)
-    RootMeanSquaredError = np.sqrt(metrics.mean_squared_error(y_test, tuned_pred))
-    MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
-    MeanSquaredErrorWrite = str(MeanSquaredError)
-    RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
-    # txt_file = open("CustomModel_rmse.txt", "w")
-    # txt_file.write("The Mean Absolute Error is ")
-    # txt_file.write(MeanAbsoluteErrorWrite)
-    # txt_file.write("The Mean Squared Error is")
-    # txt_file.write(MeanSquaredErrorWrite)
-    # txt_file.write("The Root Mean Squared Error is")
-    # txt_file.write(RootMeanSquaredErrorWrite)
+
+    r2_score = str(metrics.r2_score(y_test, y_pred))
+    MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
+    with open(f'stats{id}_DTR.txt', 'w') as f:
+        f.write(f'MSE:{MeanSquaredError}\n')
+        f.write(f'r2_Score:{r2_score}')

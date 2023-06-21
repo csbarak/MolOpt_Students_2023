@@ -4,6 +4,7 @@ def make_it_train(filename, features, param_learning_rate, param_max_depth, para
     import pickle
     from xgboost import XGBRegressor
     from sklearn.model_selection import train_test_split
+    from sklearn import metrics
     from django.core.files.storage import FileSystemStorage
     fs = FileSystemStorage()
     os.chdir(fs.location)
@@ -27,7 +28,12 @@ def make_it_train(filename, features, param_learning_rate, param_max_depth, para
                          objective='reg:squarederror',
                          eval_metric='rmse')
     eval_metric = ["rmse"]
-    # print(eval_metric)
     model.fit(X_train, y_train, eval_metric=eval_metric)
+    y_pred=model.predict(X_test)
+    r2_score = str(metrics.r2_score(y_test, y_pred))
+    MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
+    with open(f'stats{id}_XG.txt', 'w') as f:
+        f.write(f'MSE:{MeanSquaredError}\n')
+        f.write(f'r2_Score:{r2_score}')
     with open(f'XG_Model_Manual{id}.pkl', 'wb') as file:
         pickle.dump(model, file)

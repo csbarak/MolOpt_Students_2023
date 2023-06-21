@@ -37,18 +37,18 @@ def make_it_rain(filename,id):
     X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=0)
     model = xgb.XGBRegressor()
     param_grid = {
-        'n_estimator': [350, 650, 950],
-        'colsample_bytree': [0.25, 0.65, 0.8],
-        'max_depth': [8, 11, 14],
-        'reg_alpha': [0.75, 1.4, 1.6],
-        'reg_lambda': [0.43, 0.65, 1.3],
-        'subsample': [0.6, 0.85, 0.9]
+        'n_estimators': [350, 650],
+        'colsample_bytree': [0.65, 0.8],
+        'max_depth': [8, 11],
+        'reg_alpha': [0.75,1.4],
+        'reg_lambda': [0.43, 0.65],
+        'subsample': [0.6, 0.85]
     }
-    model, pred = algorithm_pipeline(X_train, X_test, y_train, y_test, model, param_grid, cv=5)
+    model, pred = algorithm_pipeline(X_train, X_test, y_train, y_test, model, param_grid, cv=2)
     sample = model.best_params_
     colsample_value = sample['colsample_bytree']
     maxdepth_value = sample['max_depth']
-    nestimators_value = sample['n_estimator']
+    nestimators_value = sample['n_estimators']
     regalpha_value = sample['reg_alpha']
     reglambda_value = sample['reg_lambda']
     subsample_value = sample['subsample']

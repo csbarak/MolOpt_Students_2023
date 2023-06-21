@@ -370,30 +370,37 @@ def runFeature(rId, data):
     try:
         run = UserAlgoritmRun.objects.get(id=rId)
         if run.algorithm_name=='Feature Extraction':
-            res = []
-            if data['Mordred']=='true':
-                Mordred_Features_Script.make_it_run('mol' + str(rId), rId,False)
-                res.append(f'FeaturesExtracted_MORDRED{rId}.csv')
-            if data['RDKit']=='true':
-                RDKit_Features_Script.make_it_run(f'mol{rId}', rId,False)
-                res.append(f'FeaturesExtracted_RDKIT{rId}.csv')
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+                if data['Mordred']=='true':
+                    f1=ex.submit(Mordred_Features_Script.make_it_run,f'mol{rId}',rId,False)
+                if data['RDKit']=='true':
+                    f2=ex.submit(RDKit_Features_Script.make_it_run,f'mol{rId}', rId,False)
+                if data['Mordred']=='true':
+                    concurrent.futures.wait([f1])
+                if data['RDKit']=='true': 
+                    concurrent.futures.wait([f2])
             email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
                                 'noreplymolopt@gmail.com', [data['email']])
             email.send()
             zip_file_path = os.path.join(fs.location, f'Result{rId}.zip')
+            featureBind(rId)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as result:
-                    for f in res:
-                        if os.path.exists(os.path.join(fs.location,f)):
-                            result.write(fs.path(f), arcname=os.path.basename(f))
+                if os.path.exists(os.path.join(fs.location,f'FeaturesExtracted{rId}.csv')):
+                    result.write(fs.path(f'FeaturesExtracted{rId}.csv'), arcname=os.path.basename(f'FeaturesExtracted{rId}.csv'))
             run.status = 'finished'
             run.result = zip_file_path
             run.save()
             Clear_media()
         else:
-            if data['Mordred']=='true':
-                Mordred_Features_Script.make_it_run(f'aligned{rId}.sdf', rId,True)
-            if data['RDKit']=='true':
-                RDKit_Features_Script.make_it_run(f'aligned{rId}.sdf', rId,True)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+                if data['Mordred']=='true':
+                    f1=ex.submit(Mordred_Features_Script.make_it_run,f'aligned{rId}.sdf', rId,True)
+                if data['RDKit']=='true':
+                    f2=ex.submit(RDKit_Features_Script.make_it_run,f'aligned{rId}.sdf', rId,True)
+                if data['Mordred']=='true':
+                    concurrent.futures.wait([f1])
+                if data['RDKit']=='true': 
+                    concurrent.futures.wait([f2])
     except:
         failed_run(rId)
 
@@ -413,41 +420,53 @@ class UserRunFeatureExtractionApiView(APIView):
             my_run.save()
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
+def runXG(rId,data):
+    if data['xgboost_isAuto']=='false':
+        Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
+                                            float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
+        Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
+    else:
+        ExpertMode_One.make_it_rain(f'learning{rId}', rId)
+        ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
+        ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+def runLasso(rId,data):
+    if data['lasso_isAuto']=='false':
+        Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
+        Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
+    else:
+        Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
+        Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+        Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+def runDTR(rId,data):
+    if data['dtr_isAuto']=='false':
+        DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
+                                                    float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
+                                                    float(data['dtr_minWeightFraction']), rId)
+        DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
+    else:
+        Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
+        Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+        Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
 
 def runAlgos(rId, data):
     try:
-        res = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+            res = []
+            if data['xgboost_isXGBoost']=='true':
+                res.append(f'Predicted_Results_XG{rId}.csv')
+                f1=ex.submit(runXG,rId,data)
+            if data['lasso_isLasso']=='true':
+                res.append(f'Predicted_Results_Lasso{rId}.csv')
+                f2=ex.submit(runLasso,rId,data)
+            if data['dtr_isDTR']=='true':
+                res.append(f'Predicted_Results_dtr{rId}.csv')
+                f3=ex.submit(runDTR,rId,data)
         if data['xgboost_isXGBoost']=='true':
-            res.append(f'Predicted_Results_XG{rId}.csv')
-            if data['xgboost_isAuto']=='false':
-                Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
-                                                    float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
-                Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
-            else:
-                ExpertMode_One.make_it_rain(f'learning{rId}', rId)
-                ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
-                ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+            concurrent.futures.wait([f1])
         if data['lasso_isLasso']=='true':
-            res.append(f'Predicted_Results_Lasso{rId}.csv')
-            if data['lasso_isAuto']=='false':
-                Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
-                Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
-            else:
-                Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
-                Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
-                Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+            concurrent.futures.wait([f2])
         if data['dtr_isDTR']=='true':
-            res.append(f'Predicted_Results_dtr{rId}.csv')
-            if data['dtr_isAuto']=='false':
-                DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
-                                                            float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
-                                                            float(data['dtr_minWeightFraction']), rId)
-                DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
-            else:
-                Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
-                Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
-                Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+            concurrent.futures.wait([f3])
         email = EmailMessage('MolOpt-Update', 'Your run finished you can download the result through the tasks section',
                                 'noreplymolopt@gmail.com',[data['email']])
         email.send()
@@ -527,6 +546,22 @@ def cleanCSV(id):
     except:
         failed_run(id)
 
+def featureBind(id):
+    try:
+        if fs.exists(f'FeaturesExtracted_MORDRED{id}.csv'):
+            df = pd.read_csv(f'FeaturesExtracted_MORDRED{id}.csv')
+            if fs.exists(f'FeaturesExtracted_RDKIT{id}.csv'):
+                df.append(pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv'))
+        else:
+            df = pd.read_csv(f'FeaturesExtracted_RDKIT{id}.csv')
+        for col in df.columns:
+            try:
+                pd.to_numeric(df[col])
+            except ValueError:
+                df = df.drop(col, axis=1)
+        df.to_csv(f'FeaturesExtracted{id}.csv', index=False)
+    except:
+        failed_run(id)
 
 class UserGetUserRunsApiView(APIView):
     def post(self,request):
@@ -572,7 +607,6 @@ class UserDownloadResultApiView(APIView):
 class UserRemoveRunApiView(APIView):
     def post(self, request):
         try:
-            print(request.data['id'])
             run = UserAlgoritmRun.objects.get(id=request.data['id'])
             run.delete()
             return Response(status=status.HTTP_200_OK)

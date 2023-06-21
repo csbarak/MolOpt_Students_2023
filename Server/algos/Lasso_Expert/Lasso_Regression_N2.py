@@ -34,16 +34,10 @@ def make_it_rain(filename, Num_Features,id):
     y_pred = clf.predict(X_test)
     with open(f'Lasso_Regression_NotInitial{id}.pkl', 'wb') as file:
         pickle.dump(clf, file)
-    MeanAbsoluteError = metrics.mean_absolute_error(y_test, y_pred)
-    MeanSquaredError = metrics.mean_squared_error(y_test, y_pred)
-    RootMeanSquaredError = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
-    MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
-    MeanSquaredErrorWrite = str(MeanSquaredError)
-    RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
-    # txt_file = open("CustomModel_rmse.txt", "w")
-    # txt_file.write("The Mean Absolute Error is ")
-    # txt_file.write(MeanAbsoluteErrorWrite)
-    # txt_file.write("The Mean Squared Error is")
-    # txt_file.write(MeanSquaredErrorWrite)
-    # txt_file.write("The Root Mean Squared Error is")
-    # txt_file.write(RootMeanSquaredErrorWrite)
+
+    r2_score = str(metrics.r2_score(y_test, y_pred))
+    MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
+    with open(f'stats{id}_Lasso.txt', 'w') as f:
+        f.write(f'MSE:{MeanSquaredError}\n')
+        f.write(f'r2_Score:{r2_score}')
+

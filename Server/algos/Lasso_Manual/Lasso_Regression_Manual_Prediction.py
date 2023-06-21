@@ -12,4 +12,9 @@ def make_it_rain(filename, features,id):
     X_scaled = scaler.fit_transform(X)
     model = pickle.load(open(f'Lasso_Regression_Manual{id}.pkl', "rb"))
     predictions = model.predict(X_scaled)
-    pandas.DataFrame(predictions, columns=['predictions']).to_csv(f'Predicted_Results_Lasso{id}.csv', header=True)
+    df=pandas.DataFrame(predictions, columns=['predictions'])
+    with open(f'stats{id}_Lasso.txt') as f:
+        lines=f.read().splitlines()
+    df.loc[len(df),'predictions']=lines[0]
+    df.loc[len(df),'predictions']=lines[1]
+    df.to_csv(f'Predicted_Results_Lasso{id}.csv', header=True)

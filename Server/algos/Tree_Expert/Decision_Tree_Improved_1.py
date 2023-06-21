@@ -17,7 +17,7 @@ def make_it_rain(filename,id):
                   "max_depth": [1, 5, 10, 15],
                   "min_samples_leaf": [1, 5, 10, 15],
                   "min_weight_fraction_leaf": [0.1, 0.5],
-                  "max_features": ["auto", "log2", "sqrt", None],
+                  "max_features": ["log2", "sqrt", None],
                   "max_leaf_nodes": [None, 10, 30, 50, 70, 90]}
     from sklearn.model_selection import GridSearchCV
     tuning_model = GridSearchCV(regressor, param_grid=parameters, scoring='neg_mean_squared_error', cv=3, verbose=3)
@@ -36,13 +36,7 @@ def make_it_rain(filename,id):
                                               splitter=splitter_selected)
     tuned_hyper_model.fit(X_train, y_train)
     tuned_pred = tuned_hyper_model.predict(X_test)
-    # All the error metrics which we will display to the user
-    #
-    from sklearn import metrics
-    # print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, tuned_pred))
-    # print('Mean Squared Error:', metrics.mean_squared_error(y_test, tuned_pred))
-    # print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, tuned_pred)))
-    # Extracting top ten most influential features from the model
+
     features = dataframe.drop('BOND', axis=1).columns
     importances = tuned_hyper_model.feature_importances_
     indices = np.argsort(importances)
@@ -54,21 +48,4 @@ def make_it_rain(filename,id):
     arr = np.array(top_important_features)
     with open(f"TopFeaturesDTR{id}.txt", "w") as txt_file:
         for line in arr:
-            txt_file.write("".join(line) + "\n")  # works with any number of elements in a line
-    # Writing the error metrics to the file
-    #
-    #
-    MeanAbsoluteError = metrics.mean_absolute_error(y_test, tuned_pred)
-    MeanSquaredError = metrics.mean_squared_error(y_test, tuned_pred)
-    RootMeanSquaredError = np.sqrt(metrics.mean_squared_error(y_test, tuned_pred))
-    MeanAbsoluteErrorWrite = str(MeanAbsoluteError)
-    MeanSquaredErrorWrite = str(MeanSquaredError)
-    RootMeanSquaredErrorWrite = str(RootMeanSquaredError)
-
-    # txt_file = open("CustomModel_rmse.txt", "w")
-    # txt_file.write("The Mean Absolute Error is ")
-    # txt_file.write(MeanAbsoluteErrorWrite)
-    # txt_file.write("The Mean Squared Error is")
-    # txt_file.write(MeanSquaredErrorWrite)
-    # txt_file.write("The Root Mean Squared Error is")
-    # txt_file.write(RootMeanSquaredErrorWrite)
+            txt_file.write("".join(line) + "\n") 

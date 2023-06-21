@@ -5,7 +5,7 @@ def make_it_rain(filename, Num_Features,id):
     import xgboost as xgb
     from sklearn.model_selection import GridSearchCV
     from xgboost import XGBRegressor
-    from sklearn.metrics import mean_squared_error
+    from sklearn import metrics
     from sklearn.model_selection import train_test_split
     from django.core.files.storage import FileSystemStorage
     fs = FileSystemStorage()
@@ -39,20 +39,20 @@ def make_it_rain(filename, Num_Features,id):
     X = X[SelectedFeatures]
     Y = dataframe['BOND']
     X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=0)
-    model = xgb.XGBRegressor()
+    model = xgb.XGBRegressor() 
     param_grid = {
-        'n_estimator': [350, 650, 950],
-        'colsample_bytree': [0.25, 0.65, 0.8],
-        'max_depth': [8, 11, 14],
-        'reg_alpha': [0.75, 1.4, 1.6],
-        'reg_lambda': [0.43, 0.65, 1.3],
-        'subsample': [0.6, 0.85, 0.9]
+        'n_estimators': [350, 650],
+        'colsample_bytree': [0.65, 0.8],
+        'max_depth': [8, 11],
+        'reg_alpha': [0.75,1.4],
+        'reg_lambda': [0.43, 0.65],
+        'subsample': [0.6, 0.85]
     }
-    model, pred = algorithm_pipeline(X_train, X_test, y_train, y_test, model, param_grid, cv=5)
+    model, pred = algorithm_pipeline(X_train, X_test, y_train, y_test, model, param_grid, cv=3)
     sample = model.best_params_
     colsample_value = sample['colsample_bytree']
     maxdepth_value = sample['max_depth']
-    nestimators_value = sample['n_estimator']
+    nestimators_value = sample['n_estimators']
     regalpha_value = sample['reg_alpha']
     reglambda_value = sample['reg_lambda']
     subsample_value = sample['subsample']
@@ -66,11 +66,11 @@ def make_it_rain(filename, Num_Features,id):
                           subsample=subsample_value,
                           )
     model1.fit(X_train, y_train)
-    preds = model1.predict(X_test)
-    error_value = mean_squared_error(y_test, preds)
-    value = str(error_value)
-    print("Final RMSE Value: ", error_value)
+    y_pred = model1.predict(X_test)
     with open(f'Expert_Mode_NotInitial{id}.pkl', 'wb') as file:
         pickle.dump(model1, file)
-    # txt_file = open("CustomModel_rmse.txt", "w")
-    # txt_file.write(value)
+    r2_score = str(metrics.r2_score(y_test, y_pred))
+    MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
+    with open(f'stats{id}_XG.txt', 'w') as f:
+        f.write(f'MSE:{MeanSquaredError}\n')
+        f.write(f'r2_Score:{r2_score}')
