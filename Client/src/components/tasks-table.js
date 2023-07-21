@@ -67,7 +67,7 @@ const TasksTable = () => {
   const handleDownload = async e => {
     e.preventDefault()
     try {
-      const response = await fetch('http://localhost:8000/api/download_result/', {
+      const response = await fetch('https://molopt.online/api/download_result/', {
         method: 'POST',
         body: JSON.stringify({ id: e.target.id }),
         headers: {

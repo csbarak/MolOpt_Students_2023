@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from django.core.files.uploadhandler import MemoryFileUploadHandler
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,9 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2!mf&!s&s#jr6$431*&!=lkp4xb8uujvw#gje68m-+!e9rsvuf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['molopt.online' , 'www.molopt.online']
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 1024  # 1 GB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 900  # 900 MB
+
 
 # Application definition
 
@@ -67,13 +72,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'server.wsgi.application'
 
 
+#SSL
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False
+
 
 # ALLOWED_HOSTS = [
 #     'localhost',
 # ],
-# CORS_ORIGIN_WHITELIST = [
-#     'http://localhost:8000',
-# ]
+#CORS_ORIGIN_WHITELIST = ['*']
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -141,7 +150,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 #disable the CORS feature
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

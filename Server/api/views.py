@@ -37,9 +37,9 @@ from datetime import datetime, timedelta
 RESULT_SAVING_TIME=4 #in weeks
 MAX_PARALLEL_RUNS = 9999
 ADMIN_EMAILS = {
-    'Report a bug': 'nofarrozenberg1@gmail.com',
-    'Report a problem': 'nofarrozenberg2@gmail.com',
-    'Suggestion': 'nofarrozenberg3@gmail.com'
+    'Report a bug': 'akabayov@bgu.ac.il',
+    'Report a problem': 'akabayov@bgu.ac.il',
+    'Suggestion': 'akabayov@bgu.ac.il'
 }
 
 
@@ -124,11 +124,17 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     # filter_backends = (filters.SearchFilter,)
     # search_fields = ('email', 'first_name', 'last_name')
 
-
 class UserLoginApiView(ObtainAuthToken):
-    """handle creating user authentication tokens"""
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    """Handle creating user authentication tokens"""
 
+    def post(self, request, *args, **kwargs):
+        # Handle POST request (same as the existing implementation)
+        response = super().post(request, *args, **kwargs)
+        return response
+
+    def get(self, request, *args, **kwargs):
+        # Handle GET request (e.g., provide a login page or info)
+        return Response({'message': 'Please use POST request to log in'})
 
 class UserLogoutApiView(APIView):
     permission_classes = ([IsAuthenticated])
@@ -426,8 +432,11 @@ def runXG(rId,data):
                                             float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
         Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
     else:
+        print('in xgboost else 1')
         ExpertMode_One.make_it_rain(f'learning{rId}', rId)
+        print('2')
         ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
+        print('3')
         ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
 def runLasso(rId,data):
     if data['lasso_isAuto']=='false':
@@ -453,6 +462,7 @@ def runAlgos(rId, data):
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
             res = []
             if data['xgboost_isXGBoost']=='true':
+                print('in xgboost')
                 res.append(f'Predicted_Results_XG{rId}.csv')
                 f1=ex.submit(runXG,rId,data)
             if data['lasso_isLasso']=='true':
