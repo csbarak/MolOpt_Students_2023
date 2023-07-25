@@ -25,7 +25,7 @@ from algos.Lasso_Expert import Lasso_Regression_N1, Lasso_Regression_N2, Lasso_R
 from algos.Lasso_Manual import Lasso_Regression_Manual, Lasso_Regression_Manual_Prediction
 from algos.XG_Expert import ExpertMode_One, ExpertMode_Two, ExpertMode_Prediction_Script
 from algos.XG_Manual import Model_Training_Script, Prediction_Script
-from algos import MCS_Script, Mordred_Features_Script, RDKit_Features_Script
+from algos import MCS_Script, Mordred_Features_Script, RDKit_Features_Script,Lasso_Exp,Lasso_Man,XG_Exp,XG_Man,DTR_Exp,DTR_Man
 from rdkit import Chem
 import concurrent.futures
 import pandas as pd
@@ -427,35 +427,39 @@ class UserRunFeatureExtractionApiView(APIView):
             Clear_media()
             return Response(status=status.HTTP_400_BAD_REQUEST)
 def runXG(rId,data):
+    print(data)
     if data['xgboost_isAuto']=='false':
-        Model_Training_Script.make_it_train(f'learning{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
+        try:
+            XG_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
                                             float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
-        Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
+        except Exception as e:
+            print(e)
+        # Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
     else:
-        print('in xgboost else 1')
-        ExpertMode_One.make_it_rain(f'learning{rId}', rId)
-        print('2')
-        ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
-        print('3')
-        ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+        XG_Exp.make_it_rain(f'learning{rId}',f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
+        # ExpertMode_Two.make_it_rain(f'learning{rId}' , int(data['xgboost_numberOfFeatures']), rId)
+        # ExpertMode_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
 def runLasso(rId,data):
     if data['lasso_isAuto']=='false':
-        Lasso_Regression_Manual.make_it_rain(f'learning{rId}', data['lasso_features'], float(data['lasso_alphaValue']), rId)
-        Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
+        Lasso_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['lasso_autoFeatures'], float(data['lasso_alphaValue']), rId)
+        # Lasso_Regression_Manual_Prediction.make_it_rain('prediction', data['lasso_features'], rId)
     else:
-        Lasso_Regression_N1.make_it_rain(f'learning{rId}', rId)
-        Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
-        Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+        Lasso_Exp.make_it_rain(f'learning{rId}', f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']),rId)
+        # Lasso_Regression_N2.make_it_rain(f'learning{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
+        # Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
 def runDTR(rId,data):
     if data['dtr_isAuto']=='false':
-        DecisionTreeRegressor_Manual.make_it_train(f'learning{rId}', str(data['dtr_autoFeatures']), int(data['dtr_maxDepth']),
-                                                    float(data['dtr_minSample']), float(data['dtr_minSampleLeaf']),
+        try:
+            DTR_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['dtr_autoFeatures'], int(data['dtr_maxDepth']),
+                                                    int(data['dtr_minSample']), int(data['dtr_minSampleLeaf']),
                                                     float(data['dtr_minWeightFraction']), rId)
-        DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
+        except Exception as e:
+            print(e)
+        # DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
     else:
-        Decision_Tree_Improved_1.make_it_rain(f'learning{rId}', rId)
-        Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
-        Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+        DTR_Exp.make_it_rain(f'learning{rId}',f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+        # Decision_Tree_Improved_2.make_it_rain(f'learning{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
+        # Decision_Tree_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
 
 def runAlgos(rId, data):
     try:
