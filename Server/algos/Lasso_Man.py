@@ -20,17 +20,12 @@ def make_it_rain(filename,predfile, features, param_alpha,id):
     y_pred = clf.predict(X_test)
     r2_score = str(metrics.r2_score(y_test, y_pred))
     MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
-    with open(f'stats{id}_Lasso.txt', 'w') as f:
-        f.write(f'MSE:{MeanSquaredError}\n')
-        f.write(f'r2_Score:{r2_score}')
     data_pred = pandas.read_csv(predfile)
     X = data_pred[features]
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     predictions = clf.predict(X_scaled)
     df=pandas.DataFrame(predictions, columns=['predictions'])
-    with open(f'stats{id}_Lasso.txt') as f:
-        lines=f.read().splitlines()
-    df.loc[len(df),'predictions']=lines[0]
-    df.loc[len(df),'predictions']=lines[1]
+    df.loc[len(df),'predictions']=f'MSE:{MeanSquaredError}\n'
+    df.loc[len(df),'predictions']=f'r2_Score:{r2_score}'
     df.to_csv(f'Predicted_Results_Lasso{id}.csv', header=True)

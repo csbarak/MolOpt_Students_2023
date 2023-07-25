@@ -99,15 +99,10 @@ def make_it_rain(filename,predfile,Num_Features,id):
     y_pred = model1.predict(X_test)
     r2_score = str(metrics.r2_score(y_test, y_pred))
     MeanSquaredError = str(metrics.mean_squared_error(y_test, y_pred))
-    with open(f'stats{id}_XG.txt', 'w') as f:
-        f.write(f'MSE:{MeanSquaredError}\n')
-        f.write(f'r2_Score:{r2_score}')
     pred_data = pandas.read_csv(predfile)
     X = pred_data[arr]
     predictions = model1.predict(X)
     df=pandas.DataFrame(predictions, columns=['predictions'])
-    with open(f'stats{id}_XG.txt') as f:
-        lines=f.read().splitlines()
-    df.loc[len(df),'predictions']=lines[0]
-    df.loc[len(df),'predictions']=lines[1]
+    df.loc[len(df),'predictions']=f'MSE:{MeanSquaredError}\n'
+    df.loc[len(df),'predictions']=f'r2_Score:{r2_score}'
     df.to_csv(f'Predicted_Results_XG{id}.csv', header=True)

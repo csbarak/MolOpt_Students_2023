@@ -429,11 +429,8 @@ class UserRunFeatureExtractionApiView(APIView):
 def runXG(rId,data):
     print(data)
     if data['xgboost_isAuto']=='false':
-        try:
-            XG_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
+        XG_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['xgboost_features'], float(data['xgboost_learningRate']),
                                             float(data['xgboost_maxDepth']), float(data['xgboost_lambda']), float(data['xgboost_alpha']), float(data['xgboost_dropRate']), rId)
-        except Exception as e:
-            print(e)
         # Prediction_Script.make_it_rain(f'prediction{rId}', data['xgboost_features'], rId)
     else:
         XG_Exp.make_it_rain(f'learning{rId}',f'prediction{rId}', int(data['xgboost_numberOfFeatures']), rId)
@@ -449,12 +446,9 @@ def runLasso(rId,data):
         # Lasso_Regression_Prediction_Script.make_it_rain(f'prediction{rId}', int(data['lasso_autoNumberOfFeatures']), rId)
 def runDTR(rId,data):
     if data['dtr_isAuto']=='false':
-        try:
-            DTR_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['dtr_autoFeatures'], int(data['dtr_maxDepth']),
+        DTR_Man.make_it_rain(f'learning{rId}',f'prediction{rId}', data['dtr_autoFeatures'], int(data['dtr_maxDepth']),
                                                     int(data['dtr_minSample']), int(data['dtr_minSampleLeaf']),
                                                     float(data['dtr_minWeightFraction']), rId)
-        except Exception as e:
-            print(e)
         # DecisionTreeRegressor_Manual_Prediction.make_it_rain(f'prediction{rId}', data['dtr_autoFeatures'], rId)
     else:
         DTR_Exp.make_it_rain(f'learning{rId}',f'prediction{rId}', int(data['dtr_autoNumberOfFeatures']), rId)
